@@ -3,6 +3,7 @@
   "iOSHighPerformance": true,
   "showStatusBar": false,
   "subpackages": [
+    {"name": "play", "root": "play.js"},
     {"name": "art", "root": "packs/art"},
     {"name": "world", "root": "packs/world"},
     {"name": "sound", "root": "packs/sound"},

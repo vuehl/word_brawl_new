@@ -1,3 +1,12 @@
+import 'core-js/modules/es.array.at.js';
+import 'core-js/modules/es.array.flat.js';
+import 'core-js/modules/es.array.flat-map.js';
+import 'core-js/modules/es.object.from-entries.js';
+import 'core-js/modules/es.object.has-own.js';
+import 'core-js/modules/es.promise.finally.js';
+import 'core-js/modules/es.string.at-alternative.js';
+import 'core-js/modules/es.string.match-all.js';
+import 'core-js/modules/es.string.replace-all.js';
 import * as D from 'linkedom/worker';
 import {strFromU8,strToU8} from 'fflate';
 import {LocalURL,Params} from './url.mjs';

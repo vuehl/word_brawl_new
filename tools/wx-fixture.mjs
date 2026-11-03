@@ -4,6 +4,16 @@ const storage=new Map(),dirs=new Set(['/userdata']),data=new Map(),archives=new 
 // Simulate optional downloads stalling until the guest screen is usable.
 const optionalDownloadGate = new Promise(resolve => { window.releaseOptionalDownloads=resolve; });
 const textDownloadGate = new Promise(resolve => { window.releaseTextDownload=resolve; });
+const entries=new Map();
+window.runFixtureEntry=name=>{
+  if(!entries.has(name))entries.set(name,new Promise((resolve,reject)=>{
+    const script=document.createElement('script');
+    script.onload=resolve;script.onerror=()=>reject(Error('Could not run subpackage '+name));
+    script.src='/'+window.packageEntries[name];
+    document.head.appendChild(script);
+  }));
+  return entries.get(name);
+};
 window.loadFixtureData=async name=>{
   for(const file of window.packageData[name]){
     const response=await fetch('/'+file);
@@ -55,7 +65,10 @@ globalThis.wx={
     }
     if(['art','world','sound'].includes(o.name))await optionalDownloadGate;
     await window.loadFixtureData(o.name);
-    o.success();}catch(e){o.fail(e);}}
+    // Reproduce a device reporting package success before evaluating its entry.
+    o.success();
+    setTimeout(()=>window.runFixtureEntry(o.name).catch(e=>{window.problem=e.message;console.error(e);}),100);
+  }catch(e){o.fail(e);}}
 };
 for(const [key,event] of Object.entries({TouchStart:'touchstart',TouchEnd:'touchend',TouchMove:'touchmove',TouchCancel:'touchcancel',Hide:'pagehide',Show:'pageshow'})){
   wx['on'+key]=fn=>{events[key]=fn;if(event.startsWith('touch'))document.addEventListener(event,fn,{passive:false});};

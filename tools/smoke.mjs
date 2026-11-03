@@ -12,20 +12,23 @@ const fixture=(await build({bundle:true,entryPoints:[path.join(import.meta.dirna
 // On the phone the main CommonJS loader cannot see modules inside a subpackage.
 const subpackages=JSON.parse(fs.readFileSync(path.join(game,'game.json'),'utf8')).subpackages || [];
 const modules=[], packageData={main:[]};
+const packageEntries={};
 for(const pkg of subpackages)packageData[pkg.name]=[];
+for(const pkg of subpackages)packageEntries[pkg.name]=pkg.root.endsWith('.js')?pkg.root:pkg.root.replace(/\/$/,'')+'/game.js';
 for(const entry of fs.readdirSync(game,{recursive:true})){
   const file=entry.split(path.sep).join('/');
-  const pkg=subpackages.find(({root})=>file.startsWith(root.replace(/\/$/,'')+'/'));
+  const pkg=subpackages.find(({root})=>file===root||file.startsWith(root.replace(/\/$/,'')+'/'));
   if(!pkg && file.endsWith('.js'))modules.push(file);
   if(/\.(br|bin)$/.test(file))packageData[pkg?.name||'main'].push(file);
 }
 const dataUrls=new Set(Object.values(packageData).flat().map(file=>'/'+file));
 function script(){return 'const defs={}, cache={};\n'+modules.map(p=>'defs['+JSON.stringify(p)+']=function(require,module,exports){\n'+fs.readFileSync(path.join(game,p),'utf8')+'\n};').join('\n')+
  '\nfunction load(p){if(!defs[p])throw Error("module "+p+" is not defined");if(cache[p])return cache[p].exports;const m=cache[p]={exports:{}};const req=q=>load(p.slice(0,p.lastIndexOf("/")+1)+q.slice(2)+".js");defs[p](req,m,m.exports);return m.exports;}'+
- '\nwindow.loadFixtureData("main").then(()=>load("game.js")).catch(e=>{window.problem=e.message;console.error(e);});';}
+ '\nwindow.loadFixtureData("main").then(async()=>{if(window.eagerEntry)await window.runFixtureEntry("play");load("game.js");}).catch(e=>{window.problem=e.message;console.error(e);});';}
 const srv=http.createServer((req,res)=>{
   if(req.url==='/'){res.setHeader('content-type','text/html; charset=utf-8');return res.end('<meta charset=utf-8><style>*{margin:0}canvas{display:block;width:100vw;height:100vh}</style><body><script src="/fixture.js"></script><script src="/boot.js"></script>');}
-  if(req.url==='/fixture.js'||req.url==='/boot.js'){res.setHeader('content-type','application/javascript;charset=utf-8');return res.end(req.url==='/fixture.js'?'window.packageData='+JSON.stringify(packageData)+';\n'+fixture:script());}
+  if(req.url==='/fixture.js'||req.url==='/boot.js'){res.setHeader('content-type','application/javascript;charset=utf-8');return res.end(req.url==='/fixture.js'?'window.packageData='+JSON.stringify(packageData)+';window.packageEntries='+JSON.stringify(packageEntries)+';\n'+fixture:script());}
+  if(Object.values(packageEntries).includes(req.url.slice(1))){res.setHeader('content-type','application/javascript;charset=utf-8');return fs.createReadStream(path.join(game,req.url.slice(1))).pipe(res);}
   if(dataUrls.has(req.url))return fs.createReadStream(path.join(game,req.url.slice(1))).pipe(res);
   if(req.url==='/favicon.ico'){res.statusCode=204;return res.end();}
   res.statusCode=404;res.end();
@@ -41,9 +44,17 @@ page.on('console',async m=>{if(m.type()==='error'||m.type()==='warn'){const msg=
 page.on('pageerror',e=>{console.error(e.stack);errors.push(e.message);});
 await page.setViewport({width:844,height:390,deviceScaleFactor:1});
 const failFrame=process.argv.includes('--fail-first-frame');
+if(process.argv.includes('--eager-entry'))await page.evaluateOnNewDocument(()=>{window.eagerEntry=true;});
 if(failFrame)await page.evaluateOnNewDocument(()=>{window.failFirstFrame=true;});
 if(process.argv.includes('--retry-text'))await page.evaluateOnNewDocument(()=>{window.dropTextOnce=true;});
 if(process.argv.includes('--legacy-runtime'))await page.evaluateOnNewDocument(()=>{
+  delete Array.prototype.flat;
+  delete Array.prototype.flatMap;
+  delete String.prototype.matchAll;
+  delete String.prototype.replaceAll;
+  delete Object.fromEntries;
+  delete Object.hasOwn;
+  delete Promise.prototype.finally;
   delete Array.prototype.at;
   delete String.prototype.at;
   window.TextDecoder=window.TextEncoder=undefined;

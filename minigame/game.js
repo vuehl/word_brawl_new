@@ -28,8 +28,20 @@ function presentBootFrame(screen) {
   });
 }
 
-async function launchEngine(host) {
-  const env = await require('./host').setup(host);
+function waitForPlayEntry() {
+  const box = GameGlobal.zilingPlayEntry || (GameGlobal.zilingPlayEntry = {});
+  return new Promise((resolve,reject) => {
+    function accept(api) {
+      if (api && typeof api.setup==='function' && typeof api.run==='function') resolve(api);
+      else reject(Error('玩法入口无效，请重新进入当前预览版本。'));
+    }
+    if (box.api) accept(box.api);
+    else box.receive = accept;
+  });
+}
+
+async function launchEngine(host, play) {
+  const env = await play.setup(host);
   if (host.onApp) env.onApp = host.onApp;
   let booted = false;
   const firstFrame = new Promise((resolve, reject) => {
@@ -49,7 +61,7 @@ async function launchEngine(host) {
       resolve();
     };
   });
-  const engine = require('./original')(env).then(() => { booted = true; });
+  const engine = play.run(env).then(() => { booted = true; });
   await Promise.all([firstFrame, engine]);
 }
 
@@ -67,7 +79,10 @@ async function start() {
     const view = wx.getWindowInfo ? wx.getWindowInfo() : wx.getSystemInfoSync();
     canvas.width = Math.max(1, Math.round(view.windowWidth || canvas.width || 640));
     canvas.height = Math.max(1, Math.round(view.windowHeight || canvas.height || 360));
-    const gl = canvas.getContext('webgl2', {alpha:true, antialias:false, depth:true, stencil:false});
+    let gl;
+    try { gl = canvas.getContext('webgl2', {alpha:true, antialias:false, depth:true, stencil:false}); }
+    catch (error) { console.warn('[字灵启动] 尝试默认 WebGL 2 参数', error); }
+    if (!gl) gl = canvas.getContext('webgl2');
     if (!gl) throw Error('当前微信环境无法创建 WebGL 2 画面，请更新微信后重新进入。');
     try {
       splash = require('./boot-screen')(gl);
@@ -82,14 +97,24 @@ async function start() {
     const files = require('./files');
     const host = GameGlobal.ziling = {canvas, files};
     stage('准备游戏资源');
+    const downloaded = {text:0,play:0};
     let last = -1;
-    await withTimeout(files.init(percent => {
-      const step = Math.floor(percent / 5) * 5;
-      if (!active || !Number.isFinite(step) || step <= last) return;
+    function progress(group, percent) {
+      if (!active || !Number.isFinite(percent)) return;
+      downloaded[group] = percent;
+      const step = Math.floor((downloaded.text + downloaded.play) / 10) * 5;
+      if (step <= last) return;
       last = step;
       if (splash) splash.draw(0.08 + step * 0.007);
       if (nativeLoading) wx.showLoading({title:'准备资源 ' + step + '%', mask:true});
-    }), 120000, '准备游戏数据超时，请重新进入。');
+    }
+    const [play] = await withTimeout(Promise.all([
+      files.loadPackage('play', p=>progress('play',p)).then(()=>{
+        progress('play',100);
+        return withTimeout(waitForPlayEntry(),15000,'玩法分包已下载，但微信未执行入口。');
+      }),
+      files.init(p=>progress('text',p)).then(()=>progress('text',100))
+    ]), 120000, '准备游戏数据超时，请重新进入。');
     stage('绘制游戏首页');
     if (splash) {
       splash.draw(0.9);
@@ -100,7 +125,7 @@ async function start() {
       wx.hideLoading();
       nativeLoading = false;
     }
-    await withTimeout(launchEngine(host), 60000, '游戏首页未能在限时内绘制，请重新进入。');
+    await withTimeout(launchEngine(host,play), 60000, '游戏首页未能在限时内绘制，请重新进入。');
     console.info('[字灵启动] 游戏首页已绘制', Date.now() - began, 'ms');
   } catch (error) {
     active = false;

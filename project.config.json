@@ -2,6 +2,7 @@
   "description": "字灵 · 拆字冒险",
   "miniprogramRoot": "minigame/",
   "setting": {
+    "ignoreDevUnusedFiles": false,
     "urlCheck": false,
     "es6": false,
     "postcss": true,
@@ -50,7 +51,10 @@
   "simulatorPluginLibVersion": {},
   "packOptions": {
     "ignore": [],
-    "include": []
+    "include": [
+      {"type":"file","value":"play.js"},
+      {"type":"suffix","value":".br"}
+    ]
   },
   "isGameTourist": false,
   "editorSetting": {}

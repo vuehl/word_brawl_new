@@ -4,6 +4,7 @@ import {execFileSync} from 'node:child_process';
 import esbuild from 'esbuild';
 import {parse} from '../source/tools/vendor/acorn.mjs';
 import {addBootAssets,bootAssets} from './boot-assets.mjs';
+import {lowerUnicodeRegexes} from './device-syntax.mjs';
 
 const root=path.resolve(import.meta.dirname,'..'), src=path.join(root,'source'), platform=path.join(root,'platform');
 const out=path.join(root,'minigame'),engine=path.join(out,'engine');
@@ -40,6 +41,9 @@ const sources={
     build.onResolve({filter:/^node:crypto$/},()=>({path:path.join(platform,'crypto.mjs')}));
     build.onResolve({filter:/^ziling:store$/},()=>({path:path.join(platform,'store.mjs')}));
     build.onResolve({filter:/^ziling:clone$/},()=>({path:path.join(platform,'clone.mjs')}));
+    build.onLoad({filter:/core-js[\\/]internals[\\/]global-this\.js$/},()=>({
+      contents:'module.exports = typeof globalThis === "object" ? globalThis : GameGlobal;'
+    }));
     build.onLoad({filter:/./,namespace:'ziling'},()=>({
       contents:serverCode(),
       resolveDir:src,loader:'js'
@@ -54,6 +58,16 @@ const sources={
     }));
     build.onResolve({filter:/^\.\.\/assets\/three-.+\.js$/},args=>({path:path.join(src,'public/assets',path.basename(args.path))}));
     build.onLoad({filter:/src[\\/]game-font\.js$/},()=>({contents:'export const gameFontsReady=Promise.resolve();'}));
+    build.onLoad({filter:/linkedom[\\/]worker\.js$/},args=>{
+      let code=fs.readFileSync(args.path,'utf8');
+      code=replace(code,'/^(.+?)\\s+of\\s+(.+)$/is','/^([\\s\\S]+?)\\s+of\\s+([\\s\\S]+)$/i');
+      code=replace(code,'/[\\uD800-\\uDBFF](?![\\uDC00-\\uDFFF])|(?<![\\uD800-\\uDBFF])[\\uDC00-\\uDFFF]/g, "�"',
+        '/[\\uD800-\\uDBFF][\\uDC00-\\uDFFF]|[\\uD800-\\uDFFF]/g, s=>s.length===2?s:"�"');
+      return {contents:code,resolveDir:path.dirname(args.path)};
+    });
+    build.onLoad({filter:/src[\\/]config\.js$/},args=>({
+      contents:lowerUnicodeRegexes(fs.readFileSync(args.path,'utf8')),resolveDir:path.dirname(args.path)
+    }));
     build.onLoad({filter:/src[\\/]game\.js$/},()=>{
       let code=read('src/game.js').replace('await gameFontsReady;','');
       // The DOM retry screen cannot be drawn before the WeChat renderer exists.
@@ -64,15 +78,15 @@ const sources={
       code=replace(code,'(ac(), wL(), await new AL().boot());','export async function launch(){ac();wL();const app=new AL();window.onApp?.(app);await app.boot();return app;}');
       code=replace(code,'if ((this.r.render(n), this.run?.state === \x60play\x60))','if ((this.r.render(n), window.drawUI(this.r.renderer), this.run?.state === \x60play\x60))');
       code=replace(code,'(this.failing++ % 60 == 0','(window.onBootRenderError?.(e), this.failing++ % 60 == 0');
-      return {contents:code,resolveDir:path.join(src,'src')};
+      return {contents:lowerUnicodeRegexes(code),resolveDir:path.join(src,'src')};
     });
   }
 };
 // The preview service parses the submitted JavaScript before issuing a QR code.
-const previewESVersion=2018;
+const previewESVersion=2017;
 const common={bundle:true,platform:'browser',format:'cjs',minify:true,target:'es'+previewESVersion,charset:'utf8',legalComments:'eof',
   nodePaths:[path.join(import.meta.dirname,'node_modules')],plugins:[sources],logLevel:'warning'};
-await esbuild.build({...common,define:{document:'undefined'},entryPoints:[path.join(platform,'host.mjs')],outfile:path.join(out,'host.js')});
+const hostBundle=await esbuild.build({...common,define:{document:'undefined'},entryPoints:[path.join(platform,'host.mjs')],write:false});
 await esbuild.build({...common,entryPoints:[path.join(import.meta.dirname,'resource-runtime.mjs')],outfile:path.join(out,'resource-runtime.js')});
 fs.rmSync(path.join(out,'sprite-png.js'),{force:true});
 const result=await esbuild.build({...common,define:{innerWidth:'window.innerWidth',innerHeight:'window.innerHeight',devicePixelRatio:'window.devicePixelRatio'},write:false,stdin:{contents:
@@ -83,14 +97,20 @@ const bindings=('globalThis window self document navigator location history loca
   'Image HTMLImageElement HTMLCanvasElement HTMLElement HTMLInputElement HTMLButtonElement HTMLTextAreaElement HTMLSelectElement HTMLAnchorElement HTMLVideoElement Node Element '+
   'Event CustomEvent EventTarget PointerEvent MouseEvent KeyboardEvent ProgressEvent MutationObserver DOMParser OffscreenCanvas ImageBitmap createImageBitmap '+
   'fetch Headers Request Response Blob URL URLSearchParams TextEncoder TextDecoder AbortController AbortSignal AudioContext structuredClone crypto Path2D alert').split(/\s+/);
-fs.writeFileSync(path.join(out,'original.js'),'module.exports=async function(environment){const {'+bindings.join(',')+
-  '}=environment;const module={exports:{}};\n'+result.outputFiles[0].text+'\nreturn module.exports.start();};\n');
+// A WeChat single-file subpackage executes this file as its entry. It needs
+// no sibling imports. Publish before or after the main entry subscribes.
+fs.writeFileSync(path.join(out,'play.js'),'(function(){\nconst root=typeof globalThis==="object"?globalThis:GameGlobal;\nfunction setup(host){const globalThis=root,module={exports:{}};\n'+
+  hostBundle.outputFiles[0].text+'\nreturn module.exports.setup(host);}\n'+
+  'async function run(environment){const {'+bindings.join(',')+'}=environment;const module={exports:{}};\n'+
+  result.outputFiles[0].text+'\nreturn module.exports.start();}\n'+
+  'const box=GameGlobal.zilingPlayEntry||(GameGlobal.zilingPlayEntry={});box.api={setup,run};if(box.receive){box.receive(box.api);delete box.receive;}\n})();\n');
+for(const file of ['host.js','original.js'])fs.rmSync(path.join(out,file),{force:true});
 fs.copyFileSync(path.join(platform,'files.js'),path.join(out,'files.js'));
 fs.copyFileSync(path.join(platform,'boot-screen.js'),path.join(out,'boot-screen.js'));
 fs.copyFileSync(path.join(platform,'resource-codec.js'),path.join(out,'resource-codec.js'));
 addBootAssets(out,bootAssets(root));
 for(const name of ['game.js','game.json'])fs.copyFileSync(path.join(root,name),path.join(out,name));
-const runtimePackages=new Set(['linkedom','typeflex','fflate','@noble/hashes','brotli']);
+const runtimePackages=new Set(['linkedom','typeflex','fflate','@noble/hashes','brotli','core-js']);
 const notices=[];
 for(const name of runtimePackages){
   const dir=path.join(import.meta.dirname,'node_modules',name);
@@ -110,8 +130,8 @@ for(const file of built.filter(f=>f.endsWith('.js'))){
   catch(error){throw new Error(path.relative(out,file)+': '+error.message);}
 }
 const {subpackages}=JSON.parse(fs.readFileSync(path.join(out,'game.json'),'utf8'));
-const subRoots=subpackages.map(pkg=>path.resolve(out,pkg.root)+path.sep);
-const total=size(built),main=size(built.filter(file=>!subRoots.some(dir=>file.startsWith(dir))));
+const subRoots=subpackages.map(pkg=>path.resolve(out,pkg.root));
+const total=size(built),main=size(built.filter(file=>!subRoots.some(root=>file===root||file.startsWith(root+path.sep))));
 console.log('Native project:',(total/1048576).toFixed(2),'MiB, main:',(main/1048576).toFixed(2),'MiB.');
 // Leave space for the compiler's metadata below this AppID's measured 20 MiB preview limit.
 if(total>20*1048576-128*1024||main>4*1048576-64*1024)throw Error('WeChat preview package budget exceeded.');
