@@ -31,15 +31,33 @@ function storage(prefix) {
   return {getItem(k){const v=wx.getStorageSync(prefix+k);return v===''||v===undefined?null:String(v);},
     setItem(k,v){wx.setStorageSync(prefix+k,String(v));},removeItem(k){wx.removeStorageSync(prefix+k);}};
 }
+// DOM layout, hit testing and client coordinates share the usable rectangle.
+// The 3D canvas still covers the whole WeChat window behind the controls.
+function viewport(info) {
+  const width=info.windowWidth,height=info.windowHeight,screenTop=info.screenTop||0;
+  let left=0,top=0,right=width,bottom=height;
+  const safe=info.safeArea;
+  if(safe){
+    const x=Math.max(0,safe.left),y=Math.max(0,safe.top-screenTop);
+    const r=Math.min(width,safe.right),b=Math.min(height,safe.bottom-screenTop);
+    // Ignore empty or still-portrait coordinates during an orientation change.
+    if(r-x>width/2&&b-y>height/2){left=x;top=y;right=r;bottom=b;}
+  }
+  try{
+    const menu=wx.getMenuButtonBoundingClientRect?.();
+    if(menu&&menu.right>menu.left&&menu.right<=width+1&&menu.bottom>menu.top&&menu.bottom-screenTop<height/2)
+      top=Math.max(top,menu.bottom-screenTop+4);
+  }catch{} // Some runtimes do not expose a capsule rectangle.
+  return {w:right-left,h:bottom-top,x:left,y:top,width,height,dpr:info.pixelRatio||1};
+}
+const uiScale=view=>Math.min(view.dpr,2,Math.sqrt(2000000/(view.width*view.height)));
 export async function setup(host) {
   await initCrypto();
   const {document:doc}=D.parseHTML('<!doctype html><html><head></head><body><canvas id="game"></canvas><div id="ui"></div></body></html>');
   const win=new D.EventTarget(),system=wx.getWindowInfo?wx.getWindowInfo():wx.getSystemInfoSync();
-  const view={w:system.windowWidth,h:system.windowHeight,dpr:system.pixelRatio||1};
-  if(system.safeArea)view.insets={left:system.safeArea.left,top:system.safeArea.top,
-    right:Math.max(0,view.w-system.safeArea.right),bottom:Math.max(0,view.h-system.safeArea.bottom)};
+  const view=viewport(system);
   const {Image,makeCanvas,screen}=installSurfaces(D,doc,host,view);
-  let scale=Math.min(view.dpr,2);const uiCanvas=makeCanvas();uiCanvas.width=Math.round(view.w*scale);uiCanvas.height=Math.round(view.h*scale);
+  let scale=uiScale(view);const uiCanvas=makeCanvas();uiCanvas.width=Math.round(view.width*scale);uiCanvas.height=Math.round(view.height*scale);
   const fonts={};
   for(const weight of ['regular','bold'])fonts[weight]=wx.loadFont(host.files.pathFor('fonts/'+weight+'.ttf'))||'sans-serif';
   host.fonts=fonts;
@@ -48,7 +66,8 @@ export async function setup(host) {
   let draw=null,last=-Infinity,dirty=true,active=null,captured=new Map(),pointers=new Map();
   const property=(key,get,set)=>Object.defineProperty(D.Element.prototype,key,{configurable:true,get,set});
   function rect(el) {
-    const box=el===screen||el===doc.documentElement||el===doc.body?{x:0,y:0,w:view.w,h:view.h}:layout.box(el)||{x:0,y:0,w:0,h:0};
+    const box=el===screen?{x:-view.x,y:-view.y,w:view.width,h:view.height}:
+      el===doc.documentElement||el===doc.body?{x:0,y:0,w:view.w,h:view.h}:layout.box(el)||{x:0,y:0,w:0,h:0};
     return {x:box.x,y:box.y,left:box.x,top:box.y,width:box.w,height:box.h,right:box.x+box.w,bottom:box.y+box.h};
   }
   for(const prefix of ['client','offset'])for(const [dim,key,measured] of [['Width','width','naturalW'],['Height','height','naturalH']])
@@ -64,7 +83,15 @@ export async function setup(host) {
   D.Element.prototype.releasePointerCapture=function(id){if(captured.get(id)===this)captured.delete(id);};
   D.Element.prototype.focus=function(){active=this;this.dispatchEvent(new D.Event('focus'));};
   D.Element.prototype.blur=function(){if(active===this)active=null;this.dispatchEvent(new D.Event('blur'));};
-  D.Element.prototype.scrollIntoView=function(){for(let p=this.parentElement;p;p=p.parentElement)if(p._scrollMax){p.scrollTop+=rect(this).y-rect(p).y;break;}};
+  D.Element.prototype.scrollIntoView=function(){
+    let {top,bottom}=rect(this);
+    for(let p=this.parentElement;p;p=p.parentElement)if(p._scrollMax){
+      const bounds=rect(p),before=p.scrollTop;
+      if(top<bounds.top)p.scrollTop+=top-bounds.top;
+      else if(bottom>bounds.bottom)p.scrollTop+=bottom-bounds.bottom;
+      const moved=p.scrollTop-before;top-=moved;bottom-=moved;
+    }
+  };
   D.Element.prototype.scrollTo=function(x,y){this.scrollTop=typeof x==='object'?x.top||0:y||0;};
   D.Element.prototype.animate=function(_frames,timing){let done,timer;const a={finished:new Promise(r=>{done=r;}),cancel(){clearTimeout(timer);done();}};
     timer=setTimeout(()=>{done();a.onfinish?.();},typeof timing==='number'?timing:(timing?.duration||0));return a;};
@@ -73,7 +100,7 @@ export async function setup(host) {
   doc.fonts={ready:Promise.resolve(),load:()=>Promise.resolve([])};doc.hasFocus=()=>!doc.hidden;
   doc.hidden=false;doc.visibilityState='visible';doc.elementFromPoint=(x,y)=>layout.hit(x,y);
   Object.defineProperty(doc,'activeElement',{get:()=>active||doc.body});
-  doc.exitPointerLock=()=>{};doc.documentElement.requestFullscreen=()=>Promise.resolve();doc.exitFullscreen=()=>Promise.resolve();
+  doc.exitPointerLock=()=>{};
   const fs=wx.getFileSystemManager(),localStorage=storage('ziling.web.');
   let locale=localStorage.getItem('pokebonk.lang')||'zh';
   const loc=new LocalURL('https://ziling.local/?touch=1');
@@ -97,10 +124,16 @@ export async function setup(host) {
   function setRange(el,x){const b=rect(el),lo=+(el.min||0),hi=+(el.max||100),step=+(el.step||1);el.value=String(lo+Math.round(Math.max(0,Math.min(1,(x-b.x)/b.width))*(hi-lo)/step)*step);el.dispatchEvent(new InputEvent('input'));}
   function touches(kind,event){
     dirty=true;
-    for(const t of event.changedTouches||event.touches||[]){
-      const id=t.identifier??0,x=t.clientX??t.pageX,y=t.clientY??t.pageY;
+    const local=t=>{
+      const x=(t.clientX??t.pageX)-view.x,y=(t.clientY??t.pageY)-view.y;
+      return {...t,identifier:t.identifier,clientX:x,clientY:y,pageX:x,pageY:y};
+    };
+    const all=Array.from(event.touches||[],local),changed=Array.from(event.changedTouches||event.touches||[],local);
+    for(const t of changed){
+      const id=t.identifier??0,x=t.clientX,y=t.clientY;
       let p=pointers.get(id);
       if(kind==='down'){
+        if(x<0||y<0||x>=view.w||y>=view.h)continue;
         const target=layout.hit(x,y);p={target,x,y,lastY:y,scrolled:false};pointers.set(id,p);
       }
       if(!p)continue;
@@ -115,7 +148,7 @@ export async function setup(host) {
       p.lastY=y;
       target.dispatchEvent(new InputEvent('pointer'+kind,options));
       win.dispatchEvent(new InputEvent('pointer'+kind,{...options,bubbles:false}));
-      target.dispatchEvent(new InputEvent('touch'+({down:'start',move:'move',up:'end',cancel:'cancel'}[kind]),{touches:event.touches||[],changedTouches:event.changedTouches||[],bubbles:true}));
+      target.dispatchEvent(new InputEvent('touch'+({down:'start',move:'move',up:'end',cancel:'cancel'}[kind]),{touches:all,changedTouches:changed,bubbles:true}));
       const input=p.target.closest?.('input,textarea');
       if(input?.type==='range'&&(kind==='down'||kind==='move'))setRange(input,x);
       if(kind==='up'||kind==='cancel'){
@@ -135,7 +168,7 @@ export async function setup(host) {
   const env=Object.assign(win,{...D,document:doc,Image,HTMLVideoElement:D.HTMLVideoElement,location:loc,history,localStorage,sessionStorage:storage('ziling.session.'),
     Blob,URL:LocalURL,URLSearchParams:Params,fetch,Request,Headers,Response,AbortController,AbortSignal,TextDecoder,TextEncoder,createImageBitmap:undefined,ImageBitmap:undefined,OffscreenCanvas:undefined,
     ProgressEvent:InputEvent,MouseEvent:InputEvent,KeyboardEvent:InputEvent,PointerEvent:InputEvent,Path2D:CanvasPath,MutationObserver:doc.defaultView.MutationObserver,
-    innerWidth:view.w,innerHeight:view.h,devicePixelRatio:view.dpr,screen:{width:view.w,height:view.h,orientation:{type:'landscape-primary',lock:()=>Promise.resolve()}},
+    innerWidth:view.w,innerHeight:view.h,devicePixelRatio:view.dpr,uiPixelRatio:scale,screen:{width:view.w,height:view.h,orientation:{type:'landscape-primary',lock:()=>Promise.resolve()}},
     navigator:{userAgent:'MicroMessenger MiniGame',language:'zh-CN',languages:['zh-CN'],maxTouchPoints:5,getGamepads:()=>[],onLine:true},
     AudioContext:wx.createWebAudioContext?class {constructor(){return wx.createWebAudioContext();}}:undefined,
     crypto:{getRandomValues(a){new Uint8Array(a.buffer,a.byteOffset,a.byteLength).set(random(a.byteLength));return a;}},
@@ -145,6 +178,12 @@ export async function setup(host) {
     cancelAnimationFrame:typeof cancelAnimationFrame==='function'?cancelAnimationFrame:clearTimeout,
     addEventListener:win.addEventListener.bind(win),removeEventListener:win.removeEventListener.bind(win),dispatchEvent:win.dispatchEvent.bind(win),
     alert:msg=>wx.showModal({title:'字灵',content:String(msg),showCancel:false}),open:()=>null,
+    prepareForest:host.files.prepareForest,
+    onRunStartError(error){
+      const restart=typeof wx.restartMiniProgram==='function';
+      wx.showModal({title:'森林未能打开',content:String(error?.message||error),showCancel:false,
+        confirmText:restart?'重新进入':'退出游戏',success:()=>restart?wx.restartMiniProgram({}):wx.exitMiniProgram({})});
+    },
     drawUI(renderer){
       const now=perf.now(),changed=dirty||now-last>=80||!draw;
       if(changed){paint(layout,layout.refresh(env.__pb?.run?.state),view,scale);last=now;dirty=false;}
@@ -153,16 +192,14 @@ export async function setup(host) {
     locale,readLocale(lang){const p=host.files.pathFor('locale/'+lang+'.json');return p?JSON.parse(fs.readFileSync(p,'utf8')):{};},
   });
   env.window=env.self=env.globalThis=env;
-  wx.onWindowResize?.(size=>{
-    const info=wx.getWindowInfo?wx.getWindowInfo():size;
-    view.w=env.innerWidth=env.screen.width=info.windowWidth;
-    view.h=env.innerHeight=env.screen.height=info.windowHeight;
-    view.dpr=env.devicePixelRatio=info.pixelRatio||view.dpr;
-    if(info.safeArea)view.insets={left:info.safeArea.left,top:info.safeArea.top,
-      right:Math.max(0,view.w-info.safeArea.right),bottom:Math.max(0,view.h-info.safeArea.bottom)};
-    scale=Math.min(view.dpr,2);uiCanvas.width=Math.round(view.w*scale);uiCanvas.height=Math.round(view.h*scale);
+  wx.onWindowResize?.(()=>{
+    const info=wx.getWindowInfo?wx.getWindowInfo():wx.getSystemInfoSync();
+    Object.assign(view,viewport(info));
+    env.innerWidth=env.screen.width=view.w;env.innerHeight=env.screen.height=view.h;
+    env.devicePixelRatio=view.dpr;
+    scale=env.uiPixelRatio=uiScale(view);uiCanvas.width=Math.round(view.width*scale);uiCanvas.height=Math.round(view.height*scale);
     layout=createLayout(doc,view,uiCanvas,fonts,uiAssets);dirty=true;env.dispatchEvent(new D.Event('resize'));
   });
-  if(host.inspect)host.inspect({env,doc,layout,touches,uiCanvas});
+  if(host.inspect)host.inspect({env,doc,get layout(){return layout;},touches,uiCanvas});
   return env;
 }

@@ -8,10 +8,11 @@ const replaced=new Set(['img','svg','canvas','input','select','br']);
 function parts(s='0'){return s.match(/(?:[^\s(]+(?:\([^)]*\))?|[^\s]+)/g)||['0'];}
 function four(s){const v=parts(s);return [v[0],v[1]??v[0],v[2]??v[0],v[3]??v[1]??v[0]];}
 function clamp(n,lo,hi){return Math.min(hi,Math.max(lo,n));}
+const scrolls=s=>/auto|scroll/.test(s['overflow-y']??s.overflow??'');
 export function createLayout(doc,view,native,fonts,uiAssets) {
   const ctx=native.getContext('2d'),engine=styleEngine(view,uiAssets.rules);
   const ref=readReference(view,uiAssets.layout);
-  let boxes=[],seen=new WeakMap(),metrics={};
+  let boxes=[],seen=new WeakMap(),metrics={},clampedScroll=false;
   const font=s=>(parseInt(s['font-weight'],10)>=600?'bold ':'')+s.font+'px "'+
     (parseInt(s['font-weight'],10)>=600?fonts.bold:fonts.regular)+'", sans-serif';
   function wrap(text,max,s) {
@@ -29,7 +30,7 @@ export function createLayout(doc,view,native,fonts,uiAssets) {
     if(text&&!el.textContent.trim())return null;
     if(tag==='img'&&!el._src&&el.getAttribute('src'))el.src=el.getAttribute('src');
     const s=engine.style(el,parent?.s);
-    if(s.display==='none'||s.visibility==='hidden')return null;
+    if(s.display==='none'||s.visibility==='hidden'||text&&s.font===0)return null;
     const metric=metrics[id],node=Y.Node.create(),item={el,tag,s,node,kids:[],metric},dim=(v,base=view.w)=>length(v,base,view,s.font);
     const set=(key,v,base=view.w)=>{
       if(!v||v==='auto'||v==='none'||v==='fit-content'||v==='max-content')return;
@@ -52,7 +53,7 @@ export function createLayout(doc,view,native,fonts,uiAssets) {
       if(pos!=='auto'){if(pos.endsWith('%'))node.setPositionPercent(edge,parseFloat(pos));else if(Number.isFinite(dim(pos,base)))node.setPosition(edge,dim(pos,base));}
     }
     if(s.flex&&s.flex!=='none'&&s.flex!=='auto'){const f=s.flex.split(' ');node.setFlexGrow(parseFloat(f[0])||0);node.setFlexShrink(f[1]===undefined?1:parseFloat(f[1])||0);set('FlexBasis',f[2]||'0%');}
-    else node.setFlexShrink(s['flex-shrink']===undefined?(s.flex==='none'?0:1):+s['flex-shrink']);
+    else node.setFlexShrink(s['flex-shrink']===undefined?(s.flex==='none'||parent&&scrolls(parent.s)?0:1):+s['flex-shrink']);
     if(s['flex-grow'])node.setFlexGrow(+s['flex-grow']);set('FlexBasis',s['flex-basis']);
     if(s['align-self'])node.setAlignSelf(align[s['align-self']]??Y.ALIGN_AUTO);
     if(grid&&!abs&&!s.width){
@@ -106,9 +107,18 @@ export function createLayout(doc,view,native,fonts,uiAssets) {
     return item;
   }
   function record(item,left,top,parentClip,parentWidth,parentHeight,parentMetric,parentOpacity=1) {
-    const {el,s,node}=item;
+    const {el,s,node,metric:m}=item;
     let x=left+node.getComputedLeft(),y=top+node.getComputedTop();
     let w=node.getComputedWidth(),h=node.getComputedHeight();const tf=s.transform||'';
+    const fields=el.nodeType===1?[el.style.left,el.style.top,el.style.transform,el.style.width,el.style.height].map(v=>v||''):null;
+    const dynamic=m&&(fields?fields.join('|'):'')!==m[8];
+    // Moving an auto-sized element does not change its natural dimensions.
+    // Reusing a flex estimate here stretched every child of the fitted HUD.
+    if(dynamic&&fields){
+      const captured=m[8].split('|');
+      if(fields[3]===captured[3]&&m[6]&&(!s.width||s.width==='max-content'||s.width==='auto'))w=m[6]*ref.sx;
+      if(fields[4]===captured[4]&&m[7]&&(!s.height||s.height==='auto'))h=m[7]*ref.sy;
+    }
     if(/absolute|fixed/.test(s.position)){
       const fixed=s.position==='fixed', pw=fixed?view.w:parentWidth,ph=fixed?view.h:parentHeight;
       const inset=four(s.inset||'auto'),off=(side,i,size)=>length(s[side]??inset[i],size,view,s.font);
@@ -126,16 +136,19 @@ export function createLayout(doc,view,native,fonts,uiAssets) {
       const v=new RegExp('translate'+axis+'\\(([^)]+)\\)').exec(tf);
       if(v){const delta=length(v[1],base,view)||0;if(axis==='X')x+=delta;else y+=delta;}
     }
-    let m=item.metric;
-    // A live stick, popup or progress fill has motion supplied by the game.
-    // Its CSS box must keep following that input even when the parent is measured.
-    const position=el.nodeType===1?[el.style.left,el.style.top,el.style.transform,el.style.width,el.style.height].map(v=>v||'').join('|'):'';
-    const dynamic=m&&position!==m[8];
     const naturalW=m?.[6]&&(!dynamic||s.width==='max-content')?m[6]*ref.sx:w;
     const naturalH=m?.[7]&&!dynamic?m[7]*ref.sy:h;
-    if(m&&parentMetric&&!dynamic&&(m[5]===null||m[5]===el.textContent.trim())){
+    const single=m?.[9]===1,changedText=m?.[5]!=null&&m[5]!==el.textContent.trim();
+    const liveLabel=changedText&&single&&el.parentNode.childNodes.length===1;
+    if(m&&parentMetric&&!dynamic&&(!changedText||liveLabel)){
       const sx=parentMetric[2]>0?parentWidth/parentMetric[2]:ref.sx,sy=parentMetric[3]>0?parentHeight/parentMetric[3]:ref.sy;
       x=left+(m[0]-parentMetric[0])*sx;y=top+(m[1]-parentMetric[1])*sy;w=m[2]*sx;h=m[3]*sy;
+      if(liveLabel){
+        const ps=seen.get(el.parentNode).s,padding=four(ps.padding);
+        const pl=length(ps['padding-left']??padding[3],parentWidth,view,ps.font)||0;
+        const pr=length(ps['padding-right']??padding[1],parentWidth,view,ps.font)||0;
+        x=left+pl;w=Math.max(0,parentWidth-pl-pr);
+      }
     }else{
       const scale=/scale\(([\d.]+)\)/.exec(tf);
       if(scale){
@@ -160,15 +173,26 @@ export function createLayout(doc,view,native,fonts,uiAssets) {
     }
     const alpha=parseFloat(s.opacity);
     const opacity=parentOpacity*(Number.isFinite(alpha)?Math.max(0,Math.min(1,alpha)):1);
-    const box={...item,s:style,x,y,w,h,naturalW,naturalH,opacity,clip:parentClip};seen.set(el,box);boxes.push(box);
+    const box={...item,s:style,x,y,w,h,naturalW,naturalH,opacity,clip:parentClip,singleLine:single&&(!changedText||liveLabel)};seen.set(el,box);boxes.push(box);
     let clip=parentClip;
     if(/hidden|scroll|auto|clip/.test([s.overflow,s['overflow-y'],s['overflow-x']].join(' '))){
       clip={x:Math.max(x,clip.x),y:Math.max(y,clip.y),r:Math.min(x+w,clip.r),b:Math.min(y+h,clip.b)};
     }
-    const bottom=Math.max(h,...item.kids.map(k=>m&&k.metric?(k.metric[1]-m[1]+k.metric[3])*ref.sy:k.node.getComputedTop()+k.node.getComputedHeight()));
-    el._scrollMax=Math.max(0,bottom-h);el._scroll=clamp(el._scroll||0,0,el._scrollMax);
+    const offset=el._scroll||0;
+    let bottom=y+h,shift=0;
+    if(scrolls(s)&&s['justify-content']==='safe center'&&!m){
+      for(const child of item.kids)if(!/absolute|fixed/.test(child.s.position))
+        shift=Math.max(shift,node.getComputedPadding(Y.EDGE_TOP)-child.node.getComputedTop());
+    }
     item.kids.sort((a,b)=>(parseInt(a.s['z-index'])||0)-(parseInt(b.s['z-index'])||0));
-    for(const child of item.kids)record(child,x,y-el._scroll,clip,w,h,m,opacity);
+    for(const child of item.kids){
+      const end=record(child,x,y-offset+shift,clip,w,h,m,opacity);
+      bottom=Math.max(bottom,end+offset);
+    }
+    el._scrollMax=scrolls(s)?Math.max(0,bottom-y-h):0;
+    el._scroll=clamp(offset,0,el._scrollMax);
+    if(el._scroll!==offset)clampedScroll=true;
+    return clip===parentClip?bottom:y+h;
   }
   function refresh(runState){
     boxes=[];seen=new WeakMap();
@@ -180,7 +204,10 @@ export function createLayout(doc,view,native,fonts,uiAssets) {
     const parent={s:engine.style(doc.documentElement,null)};
     const root=make(doc.body,parent);root.node.setWidth(view.w);root.node.setHeight(view.h);
     root.node.calculateLayout(view.w,view.h,Y.DIRECTION_LTR);
-    record(root,0,0,{x:0,y:0,r:view.w,b:view.h},view.w,view.h);root.node.freeRecursive();
+    const clip={x:0,y:0,r:view.w,b:view.h};
+    clampedScroll=false;record(root,0,0,clip,view.w,view.h);
+    if(clampedScroll){boxes=[];seen=new WeakMap();record(root,0,0,clip,view.w,view.h);}
+    root.node.freeRecursive();
     return boxes;
   }
   function hit(x,y){for(let i=boxes.length-1;i>=0;i--){const b=boxes[i],c=b.clip;if(b.tag==='#text'||b.s['pointer-events']==='none'||x<c.x||x>c.r||y<c.y||y>c.b)continue;

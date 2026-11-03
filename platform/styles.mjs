@@ -28,11 +28,16 @@ export function length(value,base,view,font=16) {
 function mediaMatches(query,view) {
   if(!query)return true;
   return query.split(/,\s*/).some(part=>{
-    if(part.includes('orientation:portrait')||part.includes('orientation: portrait'))return view.h>view.w;
+    const orientation=/orientation:\s*(portrait|landscape)/.exec(part);
+    if(orientation&&(orientation[1]==='portrait')!==(view.h>view.w))return false;
     if(/hover:\s*hover|pointer:\s*fine|prefers-reduced-motion:\s*reduce/.test(part))return false;
     for(const match of part.matchAll(/(min|max)-(width|height)\s*:\s*([\d.]+)px/g)){
       const dim=match[2]==='height'?view.h:view.w;
       if(match[1]==='min'?dim<+match[3]:dim>+match[3])return false;
+    }
+    for(const [,axis,op,limit] of part.matchAll(/\b(width|height)\s*(<=|>=|<|>)\s*([\d.]+)px/g)){
+      const dim=axis==='width'?view.w:view.h;
+      if(op==='<='?dim>+limit:op==='>='?dim<+limit:op==='<'?dim>=+limit:dim<=+limit)return false;
     }
     return true;
   });
@@ -89,7 +94,8 @@ export function styleEngine(view,rules) {
       }
     }
     for(const k of Object.keys(s))s[k]=resolveVars(s[k],vars,view);
-    s.font=length(s['font-size'],parent?.font||16,view,parent?.font||16)||16;
+    const size=length(s['font-size'],parent?.font??16,view,parent?.font??16);
+    s.font=Number.isFinite(size)?size:16;
     s['font-size']=s.font+'px';
     if(!isText&&(el.hasAttribute('hidden')||el.hidden===true))s.display='none';
     s.vars=vars;s.signature=signature;s.serial=++generation;

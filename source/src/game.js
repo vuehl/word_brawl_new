@@ -2,6 +2,7 @@ import {gameFontsReady} from './game-font.js';
 await gameFontsReady;
 import {GlyphActors} from './glyph-actors.js';
 import {GlyphHero} from './glyph-hero.js';
+import {HERO_ART} from './glyph-hero-art.js';
 import {LITE_SPECIES, isLiteSpecies, isLiteFamily} from './lite-rules.js';
 import {mountLiteQA} from './lite-qa.js';
 import {stationeryArtEnabled} from './customize.js';
@@ -5376,8 +5377,8 @@ var oc = (e, t) =>
     needsDraw = !1;
     sizeKey = ``;
     resize() {
-      let e = window.innerWidth,
-        t = window.innerHeight;
+      let e = this.canvas.clientWidth || window.innerWidth,
+        t = this.canvas.clientHeight || window.innerHeight;
       if (e < 2 || t < 2) return;
       let n = this.pixelScale > 1,
         r = n
@@ -5386,7 +5387,10 @@ var oc = (e, t) =>
       (n || (r = Math.min(r, Math.max(0.5, Math.sqrt((this.hires ? (uo ? 16e5 : 37e5) : 22e5) / (e * t))))),
         n || (r = Math.max(0.5, r * this.dynRes)),
         (r = Math.round(r * 100) / 100));
-      let i = `${e}x${t}@${r}`;
+      // Keep the world render targets at the chosen game quality. A phone can
+      // present the final pass and the UI at a higher resolution for legible text.
+      const displayRatio = Math.max(r, window.uiPixelRatio || r);
+      let i = `${e}x${t}@${r}/${displayRatio}`;
       i !== this.sizeKey &&
         ((this.sizeKey = i),
         (this.needsDraw = !0),
@@ -5394,6 +5398,7 @@ var oc = (e, t) =>
         this.renderer.setPixelRatio(r),
         this.renderer.setSize(e, t, !1),
         this.composer.setSize(e, t, !1),
+        displayRatio !== r && this.renderer.setPixelRatio(displayRatio),
         (this.camera.aspect = e / t),
         this.camera.updateProjectionMatrix());
     }
@@ -71437,6 +71442,13 @@ function iw(e, t = 3, n = `idle`) {
   ((r.width = s * l), (r.height = c * l));
   let u = r.getContext(`2d`);
   u.imageSmoothingEnabled = !1;
+  // The starter cards are usable before WeChat finishes downloading the art pack.
+  const preview=HERO_ART[e];
+  if(preview){
+    const size=Math.min(r.width,r.height)*0.78;
+    u.save();u.font='bold '+size+'px "Ziling Swei", sans-serif';u.textAlign='center';u.textBaseline='middle';
+    u.fillStyle=preview.color;u.fillText(preview.glyph,r.width/2,r.height/2);u.restore();
+  }
   let d = performance.now(),
     f = 0,
     p = 0,
@@ -71444,7 +71456,8 @@ function iw(e, t = 3, n = `idle`) {
     h = () => {
       if (!r.isConnected && f > 2) cancelAnimationFrame(p);
       else {
-        if ((f++, u.clearRect(0, 0, r.width, r.height), a)) {
+        if ((f++, a)) {
+          u.clearRect(0, 0, r.width, r.height);
           if (o) {
             let e = Math.floor(((performance.now() - d) / 1e3) * 60) % m,
               t = 0;
@@ -71689,7 +71702,7 @@ var mw = 7500,
         X(`span`, { class: `rh-ic` }, t.icon()),
         X(`div`, {}, X(`b`, {}, t.title()), X(`span`, {}, t.text())),
       );
-      (document.body.append(r),
+      ((document.querySelector('.level-options')||document.body).append(r),
         (this.el = r),
         (this.busyUntil = performance.now() + mw + hw),
         this.timers.push(
@@ -94039,8 +94052,7 @@ var nP = (e) =>
       {},
       c(
         `PokéBonk es un fan-game no oficial, gratuito y sin ánimo de lucro: sin publicidad, compras ni donaciones. No está afiliado, patrocinado ni respaldado por Nintendo, The Pokémon Company, Creatures Inc. ni GAME FREAK inc. `,
-      ),
-      c(
+      ) + c(
         `Pokémon y los nombres de los personajes son marcas de sus respectivos titulares. © 1995-2026 Nintendo / Creatures Inc. / GAME FREAK inc. Sprites de PMD SpriteCollab (CC BY-NC 4.0).`,
       ),
     ),
@@ -94791,7 +94803,7 @@ function CP(e) {
     X('p',{class:'lite-lead'},'整字翻滚、蠕动、跳跃。打掉一横，正变成止；击飞火旁，灼变成勺。'),
     X('div',{class:'lite-partners'},...LITE_SPECIES.map(id=>X('button',{class:'lite-mon',onclick:()=>KP(e,'standard',id)},rw(id),X('b',{},k.get(id).name)))),
     X('div',{class:'lite-actions'},button('开始冒险',()=>KP(e),'red'),button('研究所',()=>_F(e)),button('设置',()=>$F(e),'ghost')),
-    X('p',{class:'lite-save'},'本机存档 · '+(p.counters.runs??0)+' 局 · 星星沙子 '+p.stardust),
+    X('p',{class:'lite-save'},'单机 · 本机存档 · '+(p.counters.runs??0)+' 局 · 星星沙子 '+p.stardust),
     X('p',{class:'lite-note'},'所有怪物均有拆解处理 · 完整主角 · 原版配色'),
     X('div',{class:'lite-credits'},nP(()=>rI(e)))
   ));
@@ -96750,8 +96762,7 @@ function KP(e, t = `standard`, n, r) {
         m,
       );
       ($(f).append(
-        ee,
-        te,
+        X('div', {class:'ls-profile'}, ee, te),
         re,
         X(`div`, { class: `ls-flash` }),
         X(`div`, { class: `ls-stamp` }, c(`¡Te elijo a ti!`)),
@@ -96979,18 +96990,33 @@ function QP(e,t,n='standard') {
   const meta=e.meta, forest=fr[0]; let tier=0,busy=false;
   const maxTier=Math.min(2,Math.max(0,meta.biomeTier('forest')));
   e.menuScene?.setBiome('forest'); e.menuScene?.setView('maps'); e.menuScene?.setFocus(t,meta.skinFor(t));
-  const start=()=>{if(busy)return;busy=true;meta.profile.lastBiome='forest';meta.profile.lastSpecies=t;meta.save();N.click();BN(()=>e.startRun({species:t,biome:'forest',tier,boosts:[],mode:'standard'}).then(ok=>{if(!ok)busy=false;}));};
+  const hint='通关后解锁下一档难度。局内成长、进化、道具与捕获保留。';
+  const status=X('p',{class:'lite-note'},hint);
+  const enter=X('button',{class:'btn big red',onclick:()=>start()},'进入森林');
+  function ready(label,message){busy=false;enter.disabled=false;enter.textContent=label;status.textContent=message;}
+  async function start(){
+    if(busy)return;
+    busy=true;enter.disabled=true;enter.textContent='正在准备森林…';status.textContent='正在载入地图与角色，首次进入可能稍久。';
+    try{
+      await window.prepareForest?.();
+      if(e.screen!==screen)return;
+      meta.profile.lastBiome='forest';meta.profile.lastSpecies=t;meta.save();N.click();
+      BN(async()=>{if(!await e.startRun({species:t,biome:'forest',tier,boosts:[],mode:'standard'}))ready('进入森林',hint);});
+    }catch(error){
+      console.warn('[字灵] 森林资源准备失败',error);
+      ready('重试进入森林','资源未能载入，请重试。'+(error.message||error));
+    }
+  }
   const choices=X('div',{class:'lite-actions'});
   const render=()=>$(choices).append(...Ie.map((label,i)=>X('button',{class:'btn '+(tier===i?'red':'ghost'),disabled:i>maxTier,onclick:()=>{tier=i;render();}},label+(i>maxTier?' · 待解锁':''))));
   render();
-  MN(e,'lite-map',X('section',{class:'lite-panel'},
-    X('button',{class:'btn ghost',onclick:()=>KP(e,'standard',t)},'返回角色选择'),
-    X('div',{class:'lite-kicker'},'唯一地图 · 完整经典模式'),X('h1',{},forest.name),
+  const screen=MN(e,'lite-map',X('section',{class:'lite-panel'},
+    X('div',{class:'lite-map-head'},X('div',{class:'lite-kicker'},'唯一地图 · 完整经典模式'),
+      X('button',{class:'btn ghost',onclick:()=>KP(e,'standard',t)},'返回角色选择')),X('h1',{},forest.name),
     X('p',{class:'lite-lead'},'区域 1 → 区域 2 → 区域 3 → 森林圣地'),
     X('div',{class:'lite-bosses'},...forest.guardians.map((ids,i)=>X('div',{},rw(ids[0]),X('b',{},'区域 '+(i+1)))),X('div',{},rw(forest.sanctuary.legendaries[0]),X('b',{},'森林圣地'))),
     X('p',{},'出战伙伴：'+k.get(t).name),choices,
-    X('p',{class:'lite-note'},'通关后解锁下一档难度。局内成长、进化、道具与捕获保留。'),
-    X('button',{class:'btn big red',onclick:start},'进入森林')
+    X('div',{class:'lite-map-foot'},status,enter)
   ));
   NN(event=>{if(event.key==='Enter')start();if(event.key==='Escape')KP(e,'standard',t);});
 }
@@ -103284,11 +103310,12 @@ var JI = class {
         (this.fitT = 0));
     }
     project(e, t, n, r) {
+      const canvas = e.r.canvas.getBoundingClientRect();
       return (
         this.v.set(t, n, r).project(e.r.camera),
         {
-          x: (this.v.x * 0.5 + 0.5) * innerWidth,
-          y: (-this.v.y * 0.5 + 0.5) * innerHeight,
+          x: canvas.left + (this.v.x * 0.5 + 0.5) * canvas.width,
+          y: canvas.top + (-this.v.y * 0.5 + 0.5) * canvas.height,
           vis: this.v.z < 1,
         }
       );
@@ -105085,10 +105112,8 @@ var JI = class {
       d.disabled = e.banishes <= 0;
       let f = this.modal(
           X(`h1`, {}, c(`¡Nivel {lvl}!`, { lvl: e.player.level })),
-          i,
+          X('div',{class:'level-options'},i,e.hints.el?.isConnected?e.hints.el:null,this.buildMini(e),sO(e)),
           X(`div`, { class: `actions` }, s, l, d),
-          this.buildMini(e),
-          sO(e),
         ),
         p = (e) => {
           if (!f.isConnected) {
@@ -105111,6 +105136,7 @@ var JI = class {
       let m = (e) => {
         e.disabled ? N.deny() : e.click();
       };
+      f.classList.add('level-modal');
       (GI(e, f, { reroll: () => m(s), skip: () => m(l), banish: () => m(d) }), lO(e, () => f.isConnected));
     }
     buildMini(e) {
@@ -109866,6 +109892,11 @@ var TL = () => d(Date.now()).some((e) => e.id === `halloween26`),
       (Oo(!0), (this.starting = !0));
       try {
         return await this.openRun(e);
+      } catch (error) {
+        console.error('[字灵] 森林初始化失败', error);
+        if (window.onRunStartError) window.onRunStartError(error);
+        else { this.toMenu(); this.notice('森林未能打开：' + (error.message || error)); }
+        return false;
       } finally {
         this.starting = !1;
       }

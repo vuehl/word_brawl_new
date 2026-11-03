@@ -32,12 +32,30 @@ const fs={
   readFile({filePath,success,fail}){queueMicrotask(()=>{try{success({data:fs.readFileSync(filePath)});}catch(e){fail(e);}});}
 };
 let first=true,screen=null;
-function canvas(){const el=document.createElement('canvas');if(first){first=false;screen=el;document.body.appendChild(el);}return el;}
+// WeChat exposes canvas as a fixed own data property on native rendering contexts.
+function nativeCanvas(){
+  const el=document.createElement('canvas'),getContext=el.getContext.bind(el);
+  el.getContext=(...args)=>{
+    const ctx=getContext(...args);
+    if(ctx&&!Object.prototype.hasOwnProperty.call(ctx,'canvas')){
+      Object.defineProperty(ctx,'canvas',{value:el,writable:false,configurable:false});
+      const method=args[0]==='2d'?'fillRect':'getParameter';
+      if(typeof ctx[method]==='function')Object.defineProperty(ctx,method,{value:ctx[method],writable:false,configurable:false});
+    }
+    return ctx;
+  };
+  return el;
+}
+function canvas(){const el=nativeCanvas();if(first){first=false;screen=el;document.body.appendChild(el);}return el;}
 const imageSrc=Object.getOwnPropertyDescriptor(HTMLImageElement.prototype,'src');
 globalThis.GameGlobal={};
 Object.defineProperty(GameGlobal,'ziling',{get(){return window.__host;},set(host){
   window.__host=host;host.inspect=s=>{
     window.inspected=s;
+    if(window.holdHomeStatus){
+      const gate=new Promise(resolve=>{window.releaseHomeStatus=resolve;}),fetch=s.env.fetch;
+      s.env.fetch=(url,...args)=>String(url).endsWith('/api/status')?gate.then(()=>fetch(url,...args)):fetch(url,...args);
+    }
     if(window.failFirstFrame)s.env.drawUI=()=>{throw Error('test: first game frame failed');};
   };host.onApp=app=>window.app=app;
   const resolve=host.files.pathFor;window.missingAssets=new Set();
@@ -46,9 +64,13 @@ Object.defineProperty(GameGlobal,'ziling',{get(){return window.__host;},set(host
   host.files.resolvePath=async url=>{const p=await resolveAsync(url);if(!p)window.missingAssets.add(String(url));return p;};
 }});
 globalThis.wx={
-  env:{USER_DATA_PATH:'/userdata'},getFileSystemManager:()=>fs,getWindowInfo:()=>({windowWidth:innerWidth,windowHeight:innerHeight,pixelRatio:devicePixelRatio}),
+  env:{USER_DATA_PATH:'/userdata'},getFileSystemManager:()=>fs,
+  getWindowInfo:()=>({windowWidth:innerWidth,windowHeight:innerHeight,pixelRatio:devicePixelRatio,
+    safeArea:window.phoneLayout?{left:28,top:6,right:innerWidth-16,bottom:innerHeight-8}:undefined}),
+  getMenuButtonBoundingClientRect:()=>window.phoneLayout?{left:innerWidth-106,right:innerWidth-16,top:4,bottom:32}:undefined,
+  onWindowResize:fn=>window.addEventListener('resize',fn),
   getRandomValues({length,success}){success({randomValues:crypto.getRandomValues(new Uint8Array(length)).buffer});},
-  createCanvas:canvas,createOffscreenCanvas:()=>document.createElement('canvas'),
+  createCanvas:canvas,createOffscreenCanvas:nativeCanvas,
   createImage(){const img=new Image();Object.defineProperty(img,'src',{get(){return imageSrc.get.call(img);},set(path){
     if(data.has(path)){const url=URL.createObjectURL(new Blob([bytes(path)]));img.addEventListener('load',()=>URL.revokeObjectURL(url),{once:true});imageSrc.set.call(img,url);}
     else imageSrc.set.call(img,path);
@@ -57,18 +79,25 @@ globalThis.wx={
     const face=new FontFace(family,bytes(path));document.fonts.add(face);face.load().catch(console.error);return family;},
   createWebAudioContext:()=>new AudioContext(),getStorageSync:k=>localStorage.getItem(k)||'',setStorageSync:(k,v)=>localStorage.setItem(k,v),removeStorageSync:k=>localStorage.removeItem(k),
   showLoading(o){window.loadingTitle=o.title;},hideLoading(){window.loadingTitle=null;},showModal(o){window.problem=o.content;console.error('WX MODAL',o.content);},
-  async loadSubpackage(o){try{
-    if(o.name==='text'){
-      window.textRequested=true;
-      await textDownloadGate;
-      if(window.dropTextOnce){window.dropTextOnce=false;throw Error('test: dropped download');}
-    }
-    if(['art','world','sound'].includes(o.name))await optionalDownloadGate;
-    await window.loadFixtureData(o.name);
-    // Reproduce a device reporting package success before evaluating its entry.
-    o.success();
-    setTimeout(()=>window.runFixtureEntry(o.name).catch(e=>{window.problem=e.message;console.error(e);}),100);
-  }catch(e){o.fail(e);}}
+  loadSubpackage(o){
+    let notify;
+    (async()=>{try{
+      if(o.name==='text'){
+        window.textRequested=true;
+        window.reportTextProgress=p=>notify?.({progress:p,totalBytesWritten:p*1024});
+        await textDownloadGate;
+        window.reportTextProgress(10);
+        if(window.dropTextOnce){window.dropTextOnce=false;throw Error('test: dropped download');}
+      }
+      if(['art','world','sound'].includes(o.name))await optionalDownloadGate;
+      await window.loadFixtureData(o.name);
+      // Reproduce a device reporting package success before evaluating its entry.
+      o.success();
+      if(o.name==='play')window.playDownloaded=true;
+      setTimeout(()=>window.runFixtureEntry(o.name).catch(e=>{window.problem=e.message;console.error(e);}),100);
+    }catch(e){o.fail(e);}})();
+    return {onProgressUpdate(fn){notify=fn;}};
+  }
 };
 for(const [key,event] of Object.entries({TouchStart:'touchstart',TouchEnd:'touchend',TouchMove:'touchmove',TouchCancel:'touchcancel',Hide:'pagehide',Show:'pageshow'})){
   wx['on'+key]=fn=>{events[key]=fn;if(event.startsWith('touch'))document.addEventListener(event,fn,{passive:false});};

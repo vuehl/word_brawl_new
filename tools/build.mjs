@@ -41,9 +41,19 @@ const sources={
     build.onResolve({filter:/^node:crypto$/},()=>({path:path.join(platform,'crypto.mjs')}));
     build.onResolve({filter:/^ziling:store$/},()=>({path:path.join(platform,'store.mjs')}));
     build.onResolve({filter:/^ziling:clone$/},()=>({path:path.join(platform,'clone.mjs')}));
+    build.onResolve({filter:/^ziling:base64$/},()=>({path:path.join(platform,'base64.mjs')}));
+    build.onResolve({filter:/^ziling:css-number$/},()=>({path:path.join(platform,'css-number.mjs')}));
     build.onLoad({filter:/core-js[\\/]internals[\\/]global-this\.js$/},()=>({
       contents:'module.exports = typeof globalThis === "object" ? globalThis : GameGlobal;'
     }));
+    build.onLoad({filter:/@noble[\\/]hashes[\\/]esm[\\/]_md\.js$/},args=>{
+      // SHA-256's 64-bit bit count is two 32-bit words, even on engines without BigInt.
+      const contents=replace(fs.readFileSync(args.path,'utf8'),
+        'setBigUint64(view, blockLen - 8, BigInt(this.length * 8), isLE);',
+        'view.setUint32(blockLen - (isLE ? 4 : 8), Math.floor(this.length / 0x20000000), isLE);\n'+
+        '        view.setUint32(blockLen - (isLE ? 8 : 4), this.length * 8, isLE);');
+      return {contents,resolveDir:path.dirname(args.path)};
+    });
     build.onLoad({filter:/./,namespace:'ziling'},()=>({
       contents:serverCode(),
       resolveDir:src,loader:'js'
@@ -59,10 +69,16 @@ const sources={
     build.onResolve({filter:/^\.\.\/assets\/three-.+\.js$/},args=>({path:path.join(src,'public/assets',path.basename(args.path))}));
     build.onLoad({filter:/src[\\/]game-font\.js$/},()=>({contents:'export const gameFontsReady=Promise.resolve();'}));
     build.onLoad({filter:/linkedom[\\/]worker\.js$/},args=>{
-      let code=fs.readFileSync(args.path,'utf8');
+      let code=fs.readFileSync(args.path,'utf8').replace(/\r\n/g,'\n');
+      code=replace(code,'const formatter = new Intl.NumberFormat("en-US", {\n\tuseGrouping: false,\n\tminimumFractionDigits: 0,\n\tmaximumFractionDigits: 6\n});',
+        'import {formatFiniteCssNumber} from "ziling:css-number";');
+      code=replace(code,'formatter.format(val)','formatFiniteCssNumber(val)');
       code=replace(code,'/^(.+?)\\s+of\\s+(.+)$/is','/^([\\s\\S]+?)\\s+of\\s+([\\s\\S]+)$/i');
       code=replace(code,'/[\\uD800-\\uDBFF](?![\\uDC00-\\uDFFF])|(?<![\\uD800-\\uDBFF])[\\uDC00-\\uDFFF]/g, "�"',
         '/[\\uD800-\\uDBFF][\\uDC00-\\uDFFF]|[\\uD800-\\uDFFF]/g, s=>s.length===2?s:"�"');
+      // Both the HTML entity table and CSS data URLs use this bundled decoder.
+      // Fold out linkedom's Node-only fallbacks when building the WeChat bundle.
+      code='import {decodeBase64String as atob} from "ziling:base64";\n'+code.replaceAll('typeof atob === "function"','true');
       return {contents:code,resolveDir:path.dirname(args.path)};
     });
     build.onLoad({filter:/src[\\/]config\.js$/},args=>({
@@ -110,7 +126,7 @@ fs.copyFileSync(path.join(platform,'boot-screen.js'),path.join(out,'boot-screen.
 fs.copyFileSync(path.join(platform,'resource-codec.js'),path.join(out,'resource-codec.js'));
 addBootAssets(out,bootAssets(root));
 for(const name of ['game.js','game.json'])fs.copyFileSync(path.join(root,name),path.join(out,name));
-const runtimePackages=new Set(['linkedom','typeflex','fflate','@noble/hashes','brotli','core-js']);
+const runtimePackages=new Set(['linkedom','typeflex','fflate','@noble/hashes','brotli','core-js','base64-js']);
 const notices=[];
 for(const name of runtimePackages){
   const dir=path.join(import.meta.dirname,'node_modules',name);

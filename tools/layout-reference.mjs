@@ -11,7 +11,7 @@ const temp=fs.mkdtempSync(path.join(os.tmpdir(),'ziling-reference-'));
 const server=spawn(process.execPath,[path.join(src,'server.mjs')],{cwd:src,env:{...process.env,PORT:'18189',STORE_DIR:temp},windowsHide:true,stdio:['ignore','pipe','pipe']});
 const sleep=n=>new Promise(r=>setTimeout(r,n));
 const result={views:[],styles:[]},styleIds=new Map();
-const sizes=[[844,390],[667,375],[1024,768]];
+const sizes=[[844,390],[667,375],[760,315],[600,280],[1024,768]];
 let browser;
 function keyPart(el){
   if(el.nodeType===3)return '#text';
@@ -39,29 +39,39 @@ try{
     for(const [i,[w,h]] of sizes.entries()){
       result.views[i]??={w,h,screens:{}};
       await page.setViewport({width:w,height:h});await sleep(200);
+      if(name==='play'||name==='paused')await page.evaluate(()=>__glyphApp.hud.fitTop());
       const data=await page.evaluate(({keyPartCode,keyHashCode})=>{
         const part=Function('return ('+keyPartCode+')')(),hash=Function('return ('+keyHashCode+')')(),records={};
-        function visit(el,id,inheritedStyle){
+        function visit(el,id,inheritedStyle,scale=1){
           let text=el.nodeType===3;
           if(!text&&!['svg','img','canvas','input'].includes(el.localName)&&el.nodeType!==1)return;
           if(text&&!el.textContent.trim())return;
           const s=text?inheritedStyle:getComputedStyle(el);
           if(s.display==='none'||s.visibility==='hidden')return;
-          let rect;
-          if(text){const range=document.createRange();range.selectNodeContents(el);rect=range.getBoundingClientRect();}
-          else rect=el.getBoundingClientRect();
+          let rect,lineCount;
+          if(text){
+            const range=document.createRange();range.selectNodeContents(el);rect=range.getBoundingClientRect();
+            lineCount=range.getClientRects().length;
+          }else{
+            rect=el.getBoundingClientRect();
+            if(s.transform!=='none'){const m=new DOMMatrixReadOnly(s.transform);scale*=Math.hypot(m.c,m.d);}
+            const axes=s.scale.split(/\s+/);
+            scale*=(parseFloat(axes[1]||axes[0])||1)*(parseFloat(s.zoom)||1);
+          }
           if(rect.width||rect.height){
             const row=[rect.x,rect.y,rect.width,rect.height].map(v=>Math.round(v*10)/10);
-            const style=[s.fontSize,s.fontWeight,s.color,s.backgroundColor,s.borderTopLeftRadius,s.textAlign,s.opacity];
+            const fontSize=text?Math.round(parseFloat(s.fontSize)*scale*100)/100+'px':s.fontSize;
+            const style=[fontSize,s.fontWeight,s.color,s.backgroundColor,s.borderTopLeftRadius,s.textAlign,s.opacity];
             const position=text?'':[el.style.left,el.style.top,el.style.transform,el.style.width,el.style.height].map(v=>v||'').join('|');
             records[id]=[...row,style,text?el.textContent.trim():null,text?0:el.offsetWidth,text?0:el.offsetHeight,position];
+            if(text)records[id].push(lineCount);
           }
           if(text||['canvas','svg','img','style','script'].includes(el.localName))return;
           const count={};
           for(const child of el.childNodes){
             if(child.nodeType!==1&&child.nodeType!==3||child.nodeType===3&&!child.textContent.trim())continue;
             const label=part(child),index=count[label]||0;count[label]=index+1;
-            visit(child,hash(id,label,index),s);
+            visit(child,hash(id,label,index),s,scale);
           }
         }
         visit(document.body,1,null);return records;
