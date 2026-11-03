@@ -1,0 +1,19 @@
+{
+  "name": "ziling-minigame-build",
+  "private": true,
+  "scripts": {
+    "build": "node build.mjs"
+  },
+  "dependencies": {
+    "@ffmpeg-installer/ffmpeg": "1.1.0",
+    "@noble/hashes": "1.8.0",
+    "brotli": "1.3.3",
+    "esbuild": "0.28.2",
+    "fflate": "^0.8.2",
+    "linkedom": "0.18.15",
+    "postcss": "^8.5.6",
+    "puppeteer-core": "^24.0.0",
+    "sharp": "^0.34.5",
+    "typeflex": "0.1.0"
+  }
+}

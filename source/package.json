@@ -1,0 +1,13 @@
+{
+  "name": "pokebonk-forest-lite",
+  "version": "0.8.34-lite.1",
+  "private": true,
+  "type": "module",
+  "description": "Single-player forest edition with three playable starter families",
+  "scripts": {
+    "start": "node server.mjs",
+    "test": "node --test tools/lite.test.mjs",
+    "verify": "node --test tools/lite.test.mjs && node tools/audit-assets.mjs && node tools/audit-runtime-assets.mjs",
+    "catalogs": "node tools/export-catalogs.mjs"
+  }
+}

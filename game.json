@@ -1,0 +1,11 @@
+{
+  "deviceOrientation": "landscape",
+  "iOSHighPerformance": true,
+  "showStatusBar": false,
+  "subpackages": [
+    {"name": "art", "root": "packs/art"},
+    {"name": "world", "root": "packs/world"},
+    {"name": "sound", "root": "packs/sound"},
+    {"name": "text", "root": "packs/text"}
+  ]
+}

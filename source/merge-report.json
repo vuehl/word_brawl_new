@@ -1,0 +1,2221 @@
+{
+  "toolkitFiles": 549,
+  "gamePatchesFrom1_5": [
+    8827,
+    14913,
+    14930,
+    14939,
+    25394,
+    38871,
+    43924,
+    44494,
+    44504,
+    76228,
+    78672,
+    78690,
+    78698,
+    94693,
+    101979,
+    102235,
+    102309
+  ],
+  "gameSHA256": "ee5ff80a1730a3fc1b59a192200c7e8a8b5bc7a6421a08889102ae33c3fbadd6",
+  "files": {
+    "public/overrides/assets/env/common/atlas.json": {
+      "source": "1.0.1",
+      "sha256": "d6a9b7849ab74382a629d2f391275a8af4694b81ab257d20594b4976b7d6307b"
+    },
+    "public/overrides/assets/env/common/atlas.png": {
+      "source": "1.0.1",
+      "sha256": "fd573f0d8000365e42bbd6f5a529e608d9f07e0ce04bef482bbe1231bae04475"
+    },
+    "public/overrides/assets/env/common/hazards.png": {
+      "source": "1.0.1",
+      "sha256": "6f697620aaf05ef5ecaf2fd76b4f19a478207e71379b00d3abd986ac0700a155"
+    },
+    "public/overrides/assets/env/forest/atlas.json": {
+      "source": "1.0.1",
+      "sha256": "5d775bd0a7a0429322709820fe18620784dc5957d0510350b70428fce932ff31"
+    },
+    "public/overrides/assets/env/forest/atlas.png": {
+      "source": "1.0.1",
+      "sha256": "3f37e9e2af3b9d071bb1079c73462f276c25624a87788458f23943bea012d550"
+    },
+    "public/overrides/assets/env/forest/cliff.png": {
+      "source": "1.0.1",
+      "sha256": "5958309bdd6be6b2582f7c59dee0a962289e37b246067681dda8e5b7f892b029"
+    },
+    "public/overrides/assets/env/forest/ground.png": {
+      "source": "1.0.1",
+      "sha256": "8771034e08b579eb83cc3711436964111a841487b19e873cca7f15a055205e53"
+    },
+    "public/overrides/assets/env/forest/path.png": {
+      "source": "1.0.1",
+      "sha256": "2489416300cafcf6fe1e0f9a232b93259c58a060ee425319bd81afa75698d493"
+    },
+    "public/overrides/assets/env/sanctum/atlas.json": {
+      "source": "1.0.1",
+      "sha256": "01e761f80543ca855ea2e844a4ae05c7a8beeb0f813d1cc8433ad5ad1cc4aa86"
+    },
+    "public/overrides/assets/env/sanctum/atlas.png": {
+      "source": "1.0.1",
+      "sha256": "70903c5dbd6eb4fc41a30840ea402b4fa6dfef1c8a02a5d2b51e8ae4a01f8f5f"
+    },
+    "public/overrides/assets/env/sanctum/cliff.png": {
+      "source": "1.0.1",
+      "sha256": "adbbe95209abf0e7d8d7826fe79d29b2cd099fbf66fafccca6bed83bb2656c6f"
+    },
+    "public/overrides/assets/env/sanctum/ground.png": {
+      "source": "1.0.1",
+      "sha256": "1a75f26d70fedbdbc79c752ef4874ce1ee93ca9fac08cf02d84a63de7891df8d"
+    },
+    "public/overrides/assets/env/sanctum/path.png": {
+      "source": "1.0.1",
+      "sha256": "dcd1b8f3d9f3e12794dda0341bb499dd2cc1d1c9c824213abbcd7737008a396e"
+    },
+    "public/overrides/assets/icons/1.png": {
+      "source": "1.5",
+      "sha256": "007345ed271382f4443cc98ba68aff0c9a9c1722dd0b5621ae956747c55ea56a"
+    },
+    "public/overrides/assets/icons/10.png": {
+      "source": "1.5",
+      "sha256": "f973ea7d3b452ac8f3781d4bc20584a1949bc98ed3f0512b3ec733fa52e67aad"
+    },
+    "public/overrides/assets/icons/100.png": {
+      "source": "1.5",
+      "sha256": "18a8e53cccb70928b4fd3e7a1860791060acae6aea50a598e3b1ec3d0968aaac"
+    },
+    "public/overrides/assets/icons/101.png": {
+      "source": "1.5",
+      "sha256": "627bb2d83ad462b8cd7a5b78ee30469573d491290892bd393fff509f4625e0b8"
+    },
+    "public/overrides/assets/icons/102.png": {
+      "source": "1.5",
+      "sha256": "583eca88fb2c67f63c0800c554a507f3dbeceb7d864e650aba1cb5d3abc052b3"
+    },
+    "public/overrides/assets/icons/103.png": {
+      "source": "1.5",
+      "sha256": "117fa289b3e4012a6c9438288184bffd448a57b49a84a27b0bf394831053ef77"
+    },
+    "public/overrides/assets/icons/104.png": {
+      "source": "1.5",
+      "sha256": "d40158fb386ab4c9d38fec2a366f5eea58af8c886079444027d4f0f8c08009fc"
+    },
+    "public/overrides/assets/icons/105.png": {
+      "source": "1.5",
+      "sha256": "139f1c2f9bb2ba7c893b0c24c68523b6d765a41ba4412329f374c2a9b3c39385"
+    },
+    "public/overrides/assets/icons/106.png": {
+      "source": "1.5",
+      "sha256": "f4f52fb252e71be9a506ed3ae37c083ced4107f6457dc6f777573b2519c031a3"
+    },
+    "public/overrides/assets/icons/107.png": {
+      "source": "1.5",
+      "sha256": "c84b0a778fe9aafa949dc1554d2f2b17cd7583138bf21958b52587a098990a81"
+    },
+    "public/overrides/assets/icons/108.png": {
+      "source": "1.5",
+      "sha256": "a5d7d0ba456b850e151ee062c146e5d2e55525954cf6ded8a0c0e3c7e1cd9bd3"
+    },
+    "public/overrides/assets/icons/109.png": {
+      "source": "1.5",
+      "sha256": "b8a16fd3091f72e2deb07a25bf7021dec07a395dd99ea5bf9c7c42fcbf6f867b"
+    },
+    "public/overrides/assets/icons/11.png": {
+      "source": "1.5",
+      "sha256": "d298b5a29378fe6dddcd98e2fd9d1ff4d9707211faa846d651703fc45490e1da"
+    },
+    "public/overrides/assets/icons/110.png": {
+      "source": "1.5",
+      "sha256": "37624fe2c6d3528b6e26bcfd553488a77a689b847144ae3536f7c2d04da5aa52"
+    },
+    "public/overrides/assets/icons/111.png": {
+      "source": "1.5",
+      "sha256": "5819c61519c5a66e553cd23d8dfc38753558e99f7f2524d1c4ccbb8e91548fc3"
+    },
+    "public/overrides/assets/icons/112.png": {
+      "source": "1.5",
+      "sha256": "42358bb6cd1d792fc3a4acc4840a9fe3f4aa5e83d5982adabb39de332851146e"
+    },
+    "public/overrides/assets/icons/113.png": {
+      "source": "1.5",
+      "sha256": "537dbf4239c131480ba98b048c3fec3928ce425a5dda5e7bbfda28cc220839e9"
+    },
+    "public/overrides/assets/icons/114.png": {
+      "source": "1.5",
+      "sha256": "4cb55ff2dcfe5439a7730aa65d9722516ef0767e2ad91f24134777ea673ed403"
+    },
+    "public/overrides/assets/icons/115.png": {
+      "source": "1.5",
+      "sha256": "4a655bbb8f0dfb64d0f34c5c2bd0f1501f0aff93947fa2b229304b9ca816e2b0"
+    },
+    "public/overrides/assets/icons/116.png": {
+      "source": "1.5",
+      "sha256": "7ba4783324bd16799a5850493afd41f4d64dc9c77e3edadd832ea3c62ecae235"
+    },
+    "public/overrides/assets/icons/117.png": {
+      "source": "1.5",
+      "sha256": "40b48c56455dcd0ae9218688c51cf46e22c772ab59ab2586c4f2dcfc0d149a3b"
+    },
+    "public/overrides/assets/icons/118.png": {
+      "source": "1.5",
+      "sha256": "b4671a11fd77e3b6118368917bad0ec402b098a3cc7c41ba2750a8b829c50b01"
+    },
+    "public/overrides/assets/icons/119.png": {
+      "source": "1.5",
+      "sha256": "5fe121a596c5ac7d1fff1cf8564474c043996765b0a3339ff9833e962c0fc30c"
+    },
+    "public/overrides/assets/icons/12.png": {
+      "source": "1.5",
+      "sha256": "8c002106220fbf136236240e8c3e9ffda1cfe224dc10fe0cc15df7f6712d412d"
+    },
+    "public/overrides/assets/icons/120.png": {
+      "source": "1.5",
+      "sha256": "b7d102db7cfb5aa61ca3b41b80b44372700e5582decb3e130e68f1c615a7305a"
+    },
+    "public/overrides/assets/icons/121.png": {
+      "source": "1.5",
+      "sha256": "ba7b407b13ca83cfb144090b2228fff312ba25c36d1be66b90d3e1c3d31b2185"
+    },
+    "public/overrides/assets/icons/122.png": {
+      "source": "1.5",
+      "sha256": "a8de57d444f3c7869d87591027f30f44ac3f9079706f345fcee148bd653a7d21"
+    },
+    "public/overrides/assets/icons/123.png": {
+      "source": "1.5",
+      "sha256": "4760466c9f12d3343ad9bbd82ec793e311e3c9d0f90b8a977e5f1fb22804e11d"
+    },
+    "public/overrides/assets/icons/124.png": {
+      "source": "1.5",
+      "sha256": "7c76212627416ec26e025d32ae808be190d269fcdcb7905a4f1dc46c211c9562"
+    },
+    "public/overrides/assets/icons/125.png": {
+      "source": "1.5",
+      "sha256": "9d69501770101986b9444b49fb77b2ca8c168b248dda3745f68aabf2f25d3491"
+    },
+    "public/overrides/assets/icons/126.png": {
+      "source": "1.5",
+      "sha256": "8b04ca08109c84b1483cee1603dfff5b67b9af6fe4c614bdd2c02f4a8be3b213"
+    },
+    "public/overrides/assets/icons/127.png": {
+      "source": "1.5",
+      "sha256": "1c21ea750a502da374710f3f49fbe17182ed8cfe47bd037e4ebfc3bda6be428c"
+    },
+    "public/overrides/assets/icons/128.png": {
+      "source": "1.5",
+      "sha256": "25ed26833d45c7c1d42f3dd46293c871927f69b2eb1bd72695448fc9ac9b3c46"
+    },
+    "public/overrides/assets/icons/129.png": {
+      "source": "1.5",
+      "sha256": "aaa88f8cf2c4a97673fb93a124d48378e866bad7238b4f1327d970dd46637990"
+    },
+    "public/overrides/assets/icons/13.png": {
+      "source": "1.5",
+      "sha256": "85678f5af104cd4cdcefcd60aabfcad1ad6cfbfe21292cb95a2f29eb439a987f"
+    },
+    "public/overrides/assets/icons/130.png": {
+      "source": "1.5",
+      "sha256": "798d8d6a4bf0d1fa6d9762cf027e2a412060b36ff33ebd9fab772f24a7d6487d"
+    },
+    "public/overrides/assets/icons/131.png": {
+      "source": "1.5",
+      "sha256": "f8d8f302634e05d23e3364daca919a547e893afc89a29773bfa61e2da79b665f"
+    },
+    "public/overrides/assets/icons/132.png": {
+      "source": "1.5",
+      "sha256": "139f1c2f9bb2ba7c893b0c24c68523b6d765a41ba4412329f374c2a9b3c39385"
+    },
+    "public/overrides/assets/icons/133.png": {
+      "source": "1.5",
+      "sha256": "9ff054afc096159875c484dfa2497ff804033439d59b1b029ebe63f482d3d8fe"
+    },
+    "public/overrides/assets/icons/134.png": {
+      "source": "1.5",
+      "sha256": "b6746bd681a4544ec870503a5283cdbdf9e8b9ee98f07ae114af1a54a0b10f1d"
+    },
+    "public/overrides/assets/icons/135.png": {
+      "source": "1.5",
+      "sha256": "42fb59f54f07ca67e352a0333a6957f4dc64c18e544667b57d6a9a236ea8d524"
+    },
+    "public/overrides/assets/icons/136.png": {
+      "source": "1.5",
+      "sha256": "9f5f6ead133a855df86c60bfb0969777fdb51d8b03cf8cca4ae0aeb44dbd0116"
+    },
+    "public/overrides/assets/icons/137.png": {
+      "source": "1.5",
+      "sha256": "59c4e82abf086c29ba2f0a2748af8195818cbc3ed3277223ce63c5d46b4dc305"
+    },
+    "public/overrides/assets/icons/138.png": {
+      "source": "1.5",
+      "sha256": "5819c61519c5a66e553cd23d8dfc38753558e99f7f2524d1c4ccbb8e91548fc3"
+    },
+    "public/overrides/assets/icons/139.png": {
+      "source": "1.5",
+      "sha256": "42358bb6cd1d792fc3a4acc4840a9fe3f4aa5e83d5982adabb39de332851146e"
+    },
+    "public/overrides/assets/icons/14.png": {
+      "source": "1.5",
+      "sha256": "d298b5a29378fe6dddcd98e2fd9d1ff4d9707211faa846d651703fc45490e1da"
+    },
+    "public/overrides/assets/icons/140.png": {
+      "source": "1.5",
+      "sha256": "537dbf4239c131480ba98b048c3fec3928ce425a5dda5e7bbfda28cc220839e9"
+    },
+    "public/overrides/assets/icons/141.png": {
+      "source": "1.5",
+      "sha256": "be90c38b7c1acb5d05d437dfb6dcb912e6e7c3397c154012289825a0c8a5c7d4"
+    },
+    "public/overrides/assets/icons/142.png": {
+      "source": "1.5",
+      "sha256": "4a655bbb8f0dfb64d0f34c5c2bd0f1501f0aff93947fa2b229304b9ca816e2b0"
+    },
+    "public/overrides/assets/icons/143.png": {
+      "source": "1.5",
+      "sha256": "883b5363f3e2273850d89e23d3f443457b6fd2bed2dbd5f02832b35dce65749f"
+    },
+    "public/overrides/assets/icons/144.png": {
+      "source": "1.5",
+      "sha256": "b7d102db7cfb5aa61ca3b41b80b44372700e5582decb3e130e68f1c615a7305a"
+    },
+    "public/overrides/assets/icons/145.png": {
+      "source": "1.5",
+      "sha256": "4ada86d5b110df632afb1a6c9d5bb478a349b0d14ed569c2ff950e670cd18775"
+    },
+    "public/overrides/assets/icons/146.png": {
+      "source": "1.5",
+      "sha256": "8b04ca08109c84b1483cee1603dfff5b67b9af6fe4c614bdd2c02f4a8be3b213"
+    },
+    "public/overrides/assets/icons/147.png": {
+      "source": "1.5",
+      "sha256": "ecabeb8c187a90587933c89ba9cb3a4ef527d0f2ecb9042d5ce592cde142f2f2"
+    },
+    "public/overrides/assets/icons/148.png": {
+      "source": "1.5",
+      "sha256": "0261afcb75d167dc88bb413467546362058b314e226bafb2d3ee7ecdf4486721"
+    },
+    "public/overrides/assets/icons/149.png": {
+      "source": "1.5",
+      "sha256": "2c420e7b35ac53e72cd54f669b195eee90a7907ece63a146ed2fd297f302baa9"
+    },
+    "public/overrides/assets/icons/15.png": {
+      "source": "1.5",
+      "sha256": "85678f5af104cd4cdcefcd60aabfcad1ad6cfbfe21292cb95a2f29eb439a987f"
+    },
+    "public/overrides/assets/icons/150.png": {
+      "source": "1.5",
+      "sha256": "6418be3ecc6e55698398b23af355f60b5549baa5d1d07bae7dbd162c7a17585f"
+    },
+    "public/overrides/assets/icons/151.png": {
+      "source": "1.5",
+      "sha256": "cd79afbfa065df2bb2c3b5cd6384f7f60f12139cb1727b7f42133bdb7417c428"
+    },
+    "public/overrides/assets/icons/16.png": {
+      "source": "1.5",
+      "sha256": "916cc3ab7037e589ace18735a2f7324d058bd14ce4c5d16bd56e93f4e5e4fd5b"
+    },
+    "public/overrides/assets/icons/17.png": {
+      "source": "1.5",
+      "sha256": "b48fa778f6481da7e875bc09a32cd8ed4806f52c54440ca1f9aa6966f52df107"
+    },
+    "public/overrides/assets/icons/18.png": {
+      "source": "1.5",
+      "sha256": "b48fa778f6481da7e875bc09a32cd8ed4806f52c54440ca1f9aa6966f52df107"
+    },
+    "public/overrides/assets/icons/19.png": {
+      "source": "1.5",
+      "sha256": "eb02d3e46a8446d63d1b52ced932eec6dbe83356c6f9a63b1a7a49e7da11e120"
+    },
+    "public/overrides/assets/icons/2.png": {
+      "source": "1.5",
+      "sha256": "4e66f669e92a77a07d4e1dcb63b5819c738b8ed29cbb73e7b986acfb514238dc"
+    },
+    "public/overrides/assets/icons/20.png": {
+      "source": "1.5",
+      "sha256": "87bf903d5ce87a74d7685fbe81b456953cfd8ed9c718572cba9119a43a95703b"
+    },
+    "public/overrides/assets/icons/21.png": {
+      "source": "1.5",
+      "sha256": "d56910d0f8346172cfd51f6e1d1ee056a71b5f832faa032d4a50241bba54ac94"
+    },
+    "public/overrides/assets/icons/22.png": {
+      "source": "1.5",
+      "sha256": "fcac99588ff2271f9ec23ad157b1e1ddc3f310b4ac151ee46b0bdca2bb878fc1"
+    },
+    "public/overrides/assets/icons/23.png": {
+      "source": "1.5",
+      "sha256": "658c2052638731db3804f0a768c48196028e68b4ecd03f1e830078d2f434a1c4"
+    },
+    "public/overrides/assets/icons/24.png": {
+      "source": "1.5",
+      "sha256": "e3575ceabf6e4466bd9f5c115ee49a30875427976aeb0dbc19e0d4ea73595e6a"
+    },
+    "public/overrides/assets/icons/25.png": {
+      "source": "1.5",
+      "sha256": "4ada86d5b110df632afb1a6c9d5bb478a349b0d14ed569c2ff950e670cd18775"
+    },
+    "public/overrides/assets/icons/26.png": {
+      "source": "1.5",
+      "sha256": "9e288fd3ed4c53e4fa938533c2462c2b20e51d9543739bf97c6e6ee83e6f7e02"
+    },
+    "public/overrides/assets/icons/27.png": {
+      "source": "1.5",
+      "sha256": "a5d7d0ba456b850e151ee062c146e5d2e55525954cf6ded8a0c0e3c7e1cd9bd3"
+    },
+    "public/overrides/assets/icons/28.png": {
+      "source": "1.5",
+      "sha256": "25253b8df5bd5e43984c00e9353d2d4358dcdfd0296b8e994f57576ae1897f89"
+    },
+    "public/overrides/assets/icons/29.png": {
+      "source": "1.5",
+      "sha256": "b8a16fd3091f72e2deb07a25bf7021dec07a395dd99ea5bf9c7c42fcbf6f867b"
+    },
+    "public/overrides/assets/icons/3.png": {
+      "source": "1.5",
+      "sha256": "0629ebe3e5978e7b0ccac3e313039a2af3c7177aff2471f09933c242f2dbcc60"
+    },
+    "public/overrides/assets/icons/30.png": {
+      "source": "1.5",
+      "sha256": "37624fe2c6d3528b6e26bcfd553488a77a689b847144ae3536f7c2d04da5aa52"
+    },
+    "public/overrides/assets/icons/31.png": {
+      "source": "1.5",
+      "sha256": "beb24e1bb30cdff79d14f2baf570be6996ae69735b4fb87f52816a68f77a0c0b"
+    },
+    "public/overrides/assets/icons/32.png": {
+      "source": "1.5",
+      "sha256": "d68e2931a99770745037658411f72098e072a40f20a80deea8ae88d970e4a9d7"
+    },
+    "public/overrides/assets/icons/33.png": {
+      "source": "1.5",
+      "sha256": "bd850f4b0d3a85d49067e11592d933c6020b2601273c1d248340229276dd9e5a"
+    },
+    "public/overrides/assets/icons/34.png": {
+      "source": "1.5",
+      "sha256": "e11c8424c16564a3e846f1726d81fb5da296843ffeef82af8fe0513ba49a7fea"
+    },
+    "public/overrides/assets/icons/35.png": {
+      "source": "1.5",
+      "sha256": "9ddb0c078f017af003eb371ac4926fc043d17ebf692f07787fe2082745827676"
+    },
+    "public/overrides/assets/icons/36.png": {
+      "source": "1.5",
+      "sha256": "631ca7513af8bfd53a068efb16c8be8362533c874ab63c4f59f9e1bad121be9a"
+    },
+    "public/overrides/assets/icons/37.png": {
+      "source": "1.5",
+      "sha256": "120ac8ceebaca4d9cb0ce92452b87cd1e8fe7038d41493e6dd748c52e4dcc297"
+    },
+    "public/overrides/assets/icons/38.png": {
+      "source": "1.5",
+      "sha256": "f9edeb4fff727e54ff91a7611c267e0bacaee5db20b6d5dffd794c5f397ac78e"
+    },
+    "public/overrides/assets/icons/39.png": {
+      "source": "1.5",
+      "sha256": "ecabeb8c187a90587933c89ba9cb3a4ef527d0f2ecb9042d5ce592cde142f2f2"
+    },
+    "public/overrides/assets/icons/4.png": {
+      "source": "1.5",
+      "sha256": "9f81126e14ec41bd141a5177583b2bad1854561e9a40d69e9e352ef0ac61ac73"
+    },
+    "public/overrides/assets/icons/40.png": {
+      "source": "1.5",
+      "sha256": "0261afcb75d167dc88bb413467546362058b314e226bafb2d3ee7ecdf4486721"
+    },
+    "public/overrides/assets/icons/41.png": {
+      "source": "1.5",
+      "sha256": "8b04ca08109c84b1483cee1603dfff5b67b9af6fe4c614bdd2c02f4a8be3b213"
+    },
+    "public/overrides/assets/icons/42.png": {
+      "source": "1.5",
+      "sha256": "fa45badf5045e9bf28743ad3021fa313063d77e9320ad71d25326a6b2e4a847e"
+    },
+    "public/overrides/assets/icons/43.png": {
+      "source": "1.5",
+      "sha256": "957f3fff7cda6eb51b8e4154ba5c3b1b981a507790c33a23e7a24d328a967643"
+    },
+    "public/overrides/assets/icons/44.png": {
+      "source": "1.5",
+      "sha256": "991aec82fa8a07e6ca348f07ac9db564838430ef5715e7445b0c6bdc95e50903"
+    },
+    "public/overrides/assets/icons/45.png": {
+      "source": "1.5",
+      "sha256": "023224362c4476517156aefdff2d9ae942f2c6a20001a0b7521f56d87a16308c"
+    },
+    "public/overrides/assets/icons/46.png": {
+      "source": "1.5",
+      "sha256": "4cb55ff2dcfe5439a7730aa65d9722516ef0767e2ad91f24134777ea673ed403"
+    },
+    "public/overrides/assets/icons/47.png": {
+      "source": "1.5",
+      "sha256": "e97936c5b0333d291c94ce03efef12e5950439541bde4b8058e52889a5f765f7"
+    },
+    "public/overrides/assets/icons/48.png": {
+      "source": "1.5",
+      "sha256": "44dd1124a199acc128f8c363291500fd0276da6851d504e0d99e0493189139bd"
+    },
+    "public/overrides/assets/icons/49.png": {
+      "source": "1.5",
+      "sha256": "8c002106220fbf136236240e8c3e9ffda1cfe224dc10fe0cc15df7f6712d412d"
+    },
+    "public/overrides/assets/icons/5.png": {
+      "source": "1.5",
+      "sha256": "6f4abaf87c48f0a08fe4c030865d91672caaacf798fe09d3334c85c677ccbe65"
+    },
+    "public/overrides/assets/icons/50.png": {
+      "source": "1.5",
+      "sha256": "d40158fb386ab4c9d38fec2a366f5eea58af8c886079444027d4f0f8c08009fc"
+    },
+    "public/overrides/assets/icons/51.png": {
+      "source": "1.5",
+      "sha256": "139f1c2f9bb2ba7c893b0c24c68523b6d765a41ba4412329f374c2a9b3c39385"
+    },
+    "public/overrides/assets/icons/52.png": {
+      "source": "1.5",
+      "sha256": "9ff054afc096159875c484dfa2497ff804033439d59b1b029ebe63f482d3d8fe"
+    },
+    "public/overrides/assets/icons/53.png": {
+      "source": "1.5",
+      "sha256": "87a204f0c51529d7cc541adcceaeeeeff7bd8ca7cdcf96ca5bd24b3fe4953b45"
+    },
+    "public/overrides/assets/icons/54.png": {
+      "source": "1.5",
+      "sha256": "6418be3ecc6e55698398b23af355f60b5549baa5d1d07bae7dbd162c7a17585f"
+    },
+    "public/overrides/assets/icons/55.png": {
+      "source": "1.5",
+      "sha256": "cd79afbfa065df2bb2c3b5cd6384f7f60f12139cb1727b7f42133bdb7417c428"
+    },
+    "public/overrides/assets/icons/56.png": {
+      "source": "1.5",
+      "sha256": "9e288fd3ed4c53e4fa938533c2462c2b20e51d9543739bf97c6e6ee83e6f7e02"
+    },
+    "public/overrides/assets/icons/57.png": {
+      "source": "1.5",
+      "sha256": "42b769762380475344d74c764a438d70b5562258430a0e655dc996e00e2f3063"
+    },
+    "public/overrides/assets/icons/58.png": {
+      "source": "1.5",
+      "sha256": "f9edeb4fff727e54ff91a7611c267e0bacaee5db20b6d5dffd794c5f397ac78e"
+    },
+    "public/overrides/assets/icons/59.png": {
+      "source": "1.5",
+      "sha256": "14855bb413f2d30a58b3e30d2887c51ebd8974d4297fe514c53cc6fb0cc581c1"
+    },
+    "public/overrides/assets/icons/6.png": {
+      "source": "1.5",
+      "sha256": "ef8f4d843476d1ff4afbf2e38de2659371bd664393490c4ecd9ff53a3f6306d6"
+    },
+    "public/overrides/assets/icons/60.png": {
+      "source": "1.5",
+      "sha256": "751cdf904f42594d8c29d4eadc51d67ed974f66966352e4b38e08647267a12cc"
+    },
+    "public/overrides/assets/icons/61.png": {
+      "source": "1.5",
+      "sha256": "11c809f7957170af7da3620dba50d8a76924ff562b64a416a9cf5ebc98c89d09"
+    },
+    "public/overrides/assets/icons/62.png": {
+      "source": "1.5",
+      "sha256": "b6746bd681a4544ec870503a5283cdbdf9e8b9ee98f07ae114af1a54a0b10f1d"
+    },
+    "public/overrides/assets/icons/63.png": {
+      "source": "1.5",
+      "sha256": "6a2afc6df192179bd5122815d2e793cfc2c19e5b7602a8bd4b04703300abf85c"
+    },
+    "public/overrides/assets/icons/64.png": {
+      "source": "1.5",
+      "sha256": "68ac2b398ad8b7dab122cbb86f7df9b299f42b277fec84c7c85ed1f852e2222c"
+    },
+    "public/overrides/assets/icons/65.png": {
+      "source": "1.5",
+      "sha256": "43fcecfcb2cd18cedddd57741700d8c8155a98e9098ba5b0706b03c23c4fbed5"
+    },
+    "public/overrides/assets/icons/66.png": {
+      "source": "1.5",
+      "sha256": "ceea5e78ebb5515aca6f104c9fd0feae0e127d24c3a3a2b2c8e9264ac2fc2cb4"
+    },
+    "public/overrides/assets/icons/67.png": {
+      "source": "1.5",
+      "sha256": "355d9686ad560900ccdd8dd343b98303051b6b1fd92d3ef1689633a25e7a9381"
+    },
+    "public/overrides/assets/icons/68.png": {
+      "source": "1.5",
+      "sha256": "3ffdb6a669339762a1a3ad70d98bc9a990e2cd17674dd5216def8b143e055444"
+    },
+    "public/overrides/assets/icons/69.png": {
+      "source": "1.5",
+      "sha256": "65a77e2247eb4db5ec0c50d91cf039f0d893213d6e420a83bd599278e9c6ec95"
+    },
+    "public/overrides/assets/icons/7.png": {
+      "source": "1.5",
+      "sha256": "1f4a92723de24b1bd36d28dd99416b676fa6f1e455f9b174ed1432cb4ff06095"
+    },
+    "public/overrides/assets/icons/70.png": {
+      "source": "1.5",
+      "sha256": "19b321f0a3e6e427c53b47deaf88698c5fe7ccedd4347c3a259a07822aaaa5d7"
+    },
+    "public/overrides/assets/icons/71.png": {
+      "source": "1.5",
+      "sha256": "1c21ea750a502da374710f3f49fbe17182ed8cfe47bd037e4ebfc3bda6be428c"
+    },
+    "public/overrides/assets/icons/72.png": {
+      "source": "1.5",
+      "sha256": "b7d102db7cfb5aa61ca3b41b80b44372700e5582decb3e130e68f1c615a7305a"
+    },
+    "public/overrides/assets/icons/73.png": {
+      "source": "1.5",
+      "sha256": "ba7b407b13ca83cfb144090b2228fff312ba25c36d1be66b90d3e1c3d31b2185"
+    },
+    "public/overrides/assets/icons/74.png": {
+      "source": "1.5",
+      "sha256": "25ed26833d45c7c1d42f3dd46293c871927f69b2eb1bd72695448fc9ac9b3c46"
+    },
+    "public/overrides/assets/icons/75.png": {
+      "source": "1.5",
+      "sha256": "d56910d0f8346172cfd51f6e1d1ee056a71b5f832faa032d4a50241bba54ac94"
+    },
+    "public/overrides/assets/icons/76.png": {
+      "source": "1.5",
+      "sha256": "fcac99588ff2271f9ec23ad157b1e1ddc3f310b4ac151ee46b0bdca2bb878fc1"
+    },
+    "public/overrides/assets/icons/77.png": {
+      "source": "1.5",
+      "sha256": "120ac8ceebaca4d9cb0ce92452b87cd1e8fe7038d41493e6dd748c52e4dcc297"
+    },
+    "public/overrides/assets/icons/78.png": {
+      "source": "1.5",
+      "sha256": "f9edeb4fff727e54ff91a7611c267e0bacaee5db20b6d5dffd794c5f397ac78e"
+    },
+    "public/overrides/assets/icons/79.png": {
+      "source": "1.5",
+      "sha256": "cd79afbfa065df2bb2c3b5cd6384f7f60f12139cb1727b7f42133bdb7417c428"
+    },
+    "public/overrides/assets/icons/8.png": {
+      "source": "1.5",
+      "sha256": "90fcd77762d865d2c5dbbb87d948c3893e91b8440a41443f36975be3700bfff7"
+    },
+    "public/overrides/assets/icons/80.png": {
+      "source": "1.5",
+      "sha256": "f1d3a94590bc412f529b3234f2fe62d4d27b462cfc752a4613e6a0384c50c41c"
+    },
+    "public/overrides/assets/icons/81.png": {
+      "source": "1.5",
+      "sha256": "377e71a64c1d10bf61fe470fd591d515b53daa5fa29aaabe12d5d03ae3fcfe33"
+    },
+    "public/overrides/assets/icons/82.png": {
+      "source": "1.5",
+      "sha256": "aed5d2664c46e36bf371bc7a4fe74031e3f00dc512a1d360fdc218b534961265"
+    },
+    "public/overrides/assets/icons/83.png": {
+      "source": "1.5",
+      "sha256": "59c4e82abf086c29ba2f0a2748af8195818cbc3ed3277223ce63c5d46b4dc305"
+    },
+    "public/overrides/assets/icons/84.png": {
+      "source": "1.5",
+      "sha256": "5819c61519c5a66e553cd23d8dfc38753558e99f7f2524d1c4ccbb8e91548fc3"
+    },
+    "public/overrides/assets/icons/85.png": {
+      "source": "1.5",
+      "sha256": "42358bb6cd1d792fc3a4acc4840a9fe3f4aa5e83d5982adabb39de332851146e"
+    },
+    "public/overrides/assets/icons/86.png": {
+      "source": "1.5",
+      "sha256": "b6746bd681a4544ec870503a5283cdbdf9e8b9ee98f07ae114af1a54a0b10f1d"
+    },
+    "public/overrides/assets/icons/87.png": {
+      "source": "1.5",
+      "sha256": "6a2afc6df192179bd5122815d2e793cfc2c19e5b7602a8bd4b04703300abf85c"
+    },
+    "public/overrides/assets/icons/88.png": {
+      "source": "1.5",
+      "sha256": "c49ff896ce28609321cbdfb52583064021dce1b49358adb4ad82199639a230d3"
+    },
+    "public/overrides/assets/icons/89.png": {
+      "source": "1.5",
+      "sha256": "b8a16fd3091f72e2deb07a25bf7021dec07a395dd99ea5bf9c7c42fcbf6f867b"
+    },
+    "public/overrides/assets/icons/9.png": {
+      "source": "1.5",
+      "sha256": "cb9db8baf698c4067464ff6c02016be3d1e8f3d71ea39392e79d115b8072168f"
+    },
+    "public/overrides/assets/icons/90.png": {
+      "source": "1.5",
+      "sha256": "0396116b6826a0c97798ad15335cd28d0bce3666e28b93d3e7b2f38f4359d252"
+    },
+    "public/overrides/assets/icons/91.png": {
+      "source": "1.5",
+      "sha256": "57f52389655de657bef7e46e62b4a1ae7e322393ca9d1f9b6c07dd723bfa3c1e"
+    },
+    "public/overrides/assets/icons/92.png": {
+      "source": "1.5",
+      "sha256": "d68e2931a99770745037658411f72098e072a40f20a80deea8ae88d970e4a9d7"
+    },
+    "public/overrides/assets/icons/93.png": {
+      "source": "1.5",
+      "sha256": "bd850f4b0d3a85d49067e11592d933c6020b2601273c1d248340229276dd9e5a"
+    },
+    "public/overrides/assets/icons/94.png": {
+      "source": "1.5",
+      "sha256": "e11c8424c16564a3e846f1726d81fb5da296843ffeef82af8fe0513ba49a7fea"
+    },
+    "public/overrides/assets/icons/95.png": {
+      "source": "1.5",
+      "sha256": "2c420e7b35ac53e72cd54f669b195eee90a7907ece63a146ed2fd297f302baa9"
+    },
+    "public/overrides/assets/icons/96.png": {
+      "source": "1.5",
+      "sha256": "b7d102db7cfb5aa61ca3b41b80b44372700e5582decb3e130e68f1c615a7305a"
+    },
+    "public/overrides/assets/icons/97.png": {
+      "source": "1.5",
+      "sha256": "ba7b407b13ca83cfb144090b2228fff312ba25c36d1be66b90d3e1c3d31b2185"
+    },
+    "public/overrides/assets/icons/98.png": {
+      "source": "1.5",
+      "sha256": "a8de57d444f3c7869d87591027f30f44ac3f9079706f345fcee148bd653a7d21"
+    },
+    "public/overrides/assets/icons/99.png": {
+      "source": "1.5",
+      "sha256": "bb07e82349dd86cd4b0c65ea5a2f7143a85a8e62d668922ff7f7f6eff30ef95e"
+    },
+    "public/overrides/assets/items/big-nugget.png": {
+      "source": "1.0.1",
+      "sha256": "3980123a8038ad155fec7812b7f841193bb374424ee4e3d6b0a72f7a0e1b95ca"
+    },
+    "public/overrides/assets/items/magnet.png": {
+      "source": "1.0.1",
+      "sha256": "1f38c04ae49bc6d72b3db30acc38d1a07da6f47f1d750c622c7ddfb64f46790a"
+    },
+    "public/overrides/assets/items/nugget.png": {
+      "source": "1.0.1",
+      "sha256": "5f816901fe6567f60111ce0a48c1423d35966318146adff3d1fc5eb6861681bb"
+    },
+    "public/overrides/assets/items/oran-berry.png": {
+      "source": "1.0.1",
+      "sha256": "76d203b11a744b10a87533a99937e827c0e6d09c0a450a001a519089435fe031"
+    },
+    "public/overrides/assets/items/rare-candy.png": {
+      "source": "1.0.1",
+      "sha256": "ac8c89b54255f2b5f391a1be0e1703a0b7540b4058de92c0988eafb4de0b142e"
+    },
+    "public/overrides/assets/items/repel.png": {
+      "source": "1.0.1",
+      "sha256": "f16ec79259845fda7da6c7f51799c724176d9af6eff4717e11363cfc41538b4d"
+    },
+    "public/overrides/assets/items/tm-electric.png": {
+      "source": "1.0.1",
+      "sha256": "cc9b33f9bf3b10b6c2617ef0dd62e2ef8ac2aaa5a8cb281598a3b63b100bd200"
+    },
+    "public/overrides/assets/items/tm-fighting.png": {
+      "source": "1.0.1",
+      "sha256": "e429de39330b746fa00c2122303362da2f06762a8e272845061b4520fd16592e"
+    },
+    "public/overrides/assets/items/tm-normal.png": {
+      "source": "1.0.1",
+      "sha256": "5f816901fe6567f60111ce0a48c1423d35966318146adff3d1fc5eb6861681bb"
+    },
+    "public/overrides/assets/items/tm-psychic.png": {
+      "source": "1.0.1",
+      "sha256": "5eef0c205fbff54f55c900db6f7851360107c8c30c1494bcfb82282280eb5754"
+    },
+    "public/overrides/assets/items/tm-steel.png": {
+      "source": "1.0.1",
+      "sha256": "4d6b9fbbaa76784d8118856bfbd37d37b8851992b4e6f8c79c3932380015bfef"
+    },
+    "public/overrides/assets/models/altar.glb": {
+      "source": "1.0.1",
+      "sha256": "0c8abddfe4f25f9486cdcf16979fe7257bb8a295ef2e7e638602163811d1d249"
+    },
+    "public/overrides/assets/models/ball.glb": {
+      "source": "1.0.1",
+      "sha256": "bb7370b9b10f96cabe3362f909297f0f0ba702583e3e80274b5084318f8ca75f"
+    },
+    "public/overrides/assets/models/billpc.glb": {
+      "source": "1.0.1",
+      "sha256": "7824a3d62ef58b56fa55f98e56761aba9334b101fbc205f1811c4c1d38bf974e"
+    },
+    "public/overrides/assets/models/boss.glb": {
+      "source": "1.0.1",
+      "sha256": "33650adf0b5529c10c56040262f62030a5e634e00733a4cf6d5dd51948ac768b"
+    },
+    "public/overrides/assets/models/bounceshroom.glb": {
+      "source": "1.0.1",
+      "sha256": "d0608f00a4660bb77ec5457d7d510aeae94f5f886eb7d296af582b3fc54d623e"
+    },
+    "public/overrides/assets/models/cage.glb": {
+      "source": "1.0.1",
+      "sha256": "2fe9057020e51a5897464c87dd4701231b785282995a334da425322b61688b95"
+    },
+    "public/overrides/assets/models/challenge.glb": {
+      "source": "1.0.1",
+      "sha256": "588322b68a18cc9fc63c0581ad339f7977b7c0cc8db488b51e999afcf7863c7c"
+    },
+    "public/overrides/assets/models/chest.glb": {
+      "source": "1.0.1",
+      "sha256": "be69f696e3d8541bf4b9ace31a0fae4031bf418625f066cbb32a34b33a1f9d98"
+    },
+    "public/overrides/assets/models/coast_boulder.glb": {
+      "source": "1.0.1",
+      "sha256": "dfd4e5b8a4dde5457077fef3415cf645859d47b651abfb1ae4ee7d1e85704f44"
+    },
+    "public/overrides/assets/models/coast_stack.glb": {
+      "source": "1.0.1",
+      "sha256": "a23aad8bd4bc348fa504f3ae0418b88ae037f21373e2af323fc2ad620d376888"
+    },
+    "public/overrides/assets/models/cursed.glb": {
+      "source": "1.0.1",
+      "sha256": "8bf5d06a35d29950c6dc7d5198fbb037573e6053706e091c7a5382e09ed3606a"
+    },
+    "public/overrides/assets/models/cursedchest.glb": {
+      "source": "1.0.1",
+      "sha256": "9f3bd499de3863de53bd745e24cf1c1985f7a1176483ee1f3e1f600536a31ad7"
+    },
+    "public/overrides/assets/models/desert_boulder.glb": {
+      "source": "1.0.1",
+      "sha256": "2f2d3072419b72bc36edd3099e2b1353d80481d2066a1b7c55551d7be4da8df1"
+    },
+    "public/overrides/assets/models/desert_hoodoo.glb": {
+      "source": "1.0.1",
+      "sha256": "aae411789b19859c1f6d35b093ae97967a6defd9227c58d4b17d6e17304822d0"
+    },
+    "public/overrides/assets/models/desert_pebbles.glb": {
+      "source": "1.0.1",
+      "sha256": "791ae77b0e3ef388bfa08c4f1e4d7edd6f92e65522dfd509a17630c473e3637f"
+    },
+    "public/overrides/assets/models/desert_rockpile.glb": {
+      "source": "1.0.1",
+      "sha256": "269e40849707912cde6d9cde1ef0167daa90b35c7be1645fb16101639c2dea59"
+    },
+    "public/overrides/assets/models/desert_skull.glb": {
+      "source": "1.0.1",
+      "sha256": "7bb4dd859dd24586d2992ee267fefda120854634a9ee22b41805fd3e27e643dd"
+    },
+    "public/overrides/assets/models/fossil.glb": {
+      "source": "1.0.1",
+      "sha256": "1d501cd635b8d14bffe851ea938e33e1538269ef8ccc10b4a8461e1a9ffec82a"
+    },
+    "public/overrides/assets/models/freechest.glb": {
+      "source": "1.0.1",
+      "sha256": "6b59cb4105fe7708821dde37aedd1e7a6d4cfd7efb9fedf2c9d7c81ce6250c75"
+    },
+    "public/overrides/assets/models/glacier_boulder.glb": {
+      "source": "1.0.1",
+      "sha256": "161adb2d0e0856bb60e1039227abf69d3eeb94e175028d441666dbbf9b7511a9"
+    },
+    "public/overrides/assets/models/glacier_crystals.glb": {
+      "source": "1.0.1",
+      "sha256": "c5f1dcaf1488c0c9583b12a45fa8d636f337100c6c5b2f6a04bf57bdbadb485a"
+    },
+    "public/overrides/assets/models/glacier_pillar.glb": {
+      "source": "1.0.1",
+      "sha256": "f43fd012bde638eed9e6ce9daab35910879509808b481a1296c69489dbf6cdb4"
+    },
+    "public/overrides/assets/models/glacier_spire.glb": {
+      "source": "1.0.1",
+      "sha256": "2992c40ca642776798decb34826d7340984dd3aa5fe665bc7f1dac3af39f988f"
+    },
+    "public/overrides/assets/models/goldrock.glb": {
+      "source": "1.0.1",
+      "sha256": "317658e339105e5cea87539758bab77e0297a9a3bdcb182f0579079d329a10b6"
+    },
+    "public/overrides/assets/models/greed.glb": {
+      "source": "1.0.1",
+      "sha256": "e99732f2b33cbc39b2498398a42ac38467e7ee59682bf4af2e44c993800372fe"
+    },
+    "public/overrides/assets/models/halloween_pumpkin.glb": {
+      "source": "1.0.1",
+      "sha256": "dae14bc4b48237c7c68a54fae1085ad33ddd184735d0eb223877c7f88aed284c"
+    },
+    "public/overrides/assets/models/halloween_pumpkins.glb": {
+      "source": "1.0.1",
+      "sha256": "52dba9c77f0f8cbbdde84baa1733b22b116ff8518f15878761bc3e961b213324"
+    },
+    "public/overrides/assets/models/nest.glb": {
+      "source": "1.0.1",
+      "sha256": "d49b3bdddf08289827d3527f05f4ca6418d6ee50788696e0e1620cda4eeb64a6"
+    },
+    "public/overrides/assets/models/porygon.glb": {
+      "source": "1.0.1",
+      "sha256": "d900d95d9bbaf44b8b2d6e625e3d7e31113261421bb6c54547f249b8678981b1"
+    },
+    "public/overrides/assets/models/ruins_arch.glb": {
+      "source": "1.0.1",
+      "sha256": "b52fcfb96a5782472fb0ad044cb79f5ee49e218d8612bbafcecbb5acd34a6cca"
+    },
+    "public/overrides/assets/models/ruins_bones.glb": {
+      "source": "1.0.1",
+      "sha256": "f032d1caf2535a21f1e01bbee5a34f6a9593c7a56dc690256128d368c4d949a6"
+    },
+    "public/overrides/assets/models/ruins_brazier.glb": {
+      "source": "1.0.1",
+      "sha256": "3f0af069a2caf81cceaba3e0df22bd12cbe287ee075d535edec4effe9bb07f5b"
+    },
+    "public/overrides/assets/models/ruins_column.glb": {
+      "source": "1.0.1",
+      "sha256": "0613db40a33fc0a473dcbd9a1b6b4370b642e1271e6e2c1d44147734841767be"
+    },
+    "public/overrides/assets/models/ruins_crystals.glb": {
+      "source": "1.0.1",
+      "sha256": "8fb70bd904b3c1e44825fb0e267beaf1091f423517aefd87a9db10872bd867df"
+    },
+    "public/overrides/assets/models/ruins_fossil.glb": {
+      "source": "1.0.1",
+      "sha256": "0737c174217edd3a22dfae8ff24fe2a3c1797f711078ab28727bdb09ff9024c8"
+    },
+    "public/overrides/assets/models/ruins_hoodoo.glb": {
+      "source": "1.0.1",
+      "sha256": "85beac491210d44bb8569f6441d1bc29bdfa922b2eea81b336c8ea83a1aef2eb"
+    },
+    "public/overrides/assets/models/ruins_obelisk.glb": {
+      "source": "1.0.1",
+      "sha256": "9c257675b475f9ad72c170198345332ee333e53c86282791cfaa57abab81b2e4"
+    },
+    "public/overrides/assets/models/ruins_obelisk_broken.glb": {
+      "source": "1.0.1",
+      "sha256": "0c425178c1ea3e780f11c73703e1e6aa81ed0556dea73b83433fcfa0898187c8"
+    },
+    "public/overrides/assets/models/ruins_pots.glb": {
+      "source": "1.0.1",
+      "sha256": "cb1d3e86e9271c346beaa59fc5d79caa63639c23b50a09ca0ae7513550cf63fb"
+    },
+    "public/overrides/assets/models/ruins_statue.glb": {
+      "source": "1.0.1",
+      "sha256": "486442a358fc9a72c46cabc7c080d0d5cf37e7fc1ae56909cf3490d0691b3bbe"
+    },
+    "public/overrides/assets/models/sanct_gate.glb": {
+      "source": "1.0.1",
+      "sha256": "30e7f3a4ae0426892fe071ff9ce84314f3ad8d083dc829a6b36f5f288d5d34b1"
+    },
+    "public/overrides/assets/models/sanct_pillar.glb": {
+      "source": "1.0.1",
+      "sha256": "40173ddc7c6fc0b5345cb9b05393287f01227de8fbbb8ab482a4b1b0232e4ff0"
+    },
+    "public/overrides/assets/models/shrine.glb": {
+      "source": "1.0.1",
+      "sha256": "3a3940040fc9d241f5ed4985515b88ea5430c1c9335759c93ac40e4a06fe6d75"
+    },
+    "public/overrides/assets/models/slots.glb": {
+      "source": "1.0.1",
+      "sha256": "83399dbb2d0a88820f3ebd72000792a3572a309f1e5d9011b145c6cdcd3e58ac"
+    },
+    "public/overrides/assets/models/totem.glb": {
+      "source": "1.0.1",
+      "sha256": "ae4071ef54dedcd3066446d43ae0fb315cd00f1252eb9bc9193ea2513c76813e"
+    },
+    "public/overrides/assets/models/tower_altar.glb": {
+      "source": "1.0.1",
+      "sha256": "60ae018aa3abf8071a08e289fc7223d2b519aa0ecdec1aa4e5eecc5427615be7"
+    },
+    "public/overrides/assets/models/tower_banner.glb": {
+      "source": "1.0.1",
+      "sha256": "e500a41f9cb56d293d8f47ecdaada01d526d3c3711ee9b6e192aca75f341e1ed"
+    },
+    "public/overrides/assets/models/tower_bell.glb": {
+      "source": "1.0.1",
+      "sha256": "cc8be7ac51c437c9ec9035d9b748801e07a64de83f72af0d26d6640ee93faf5c"
+    },
+    "public/overrides/assets/models/tower_candelabra.glb": {
+      "source": "1.0.1",
+      "sha256": "fdd8191a2324609621448664876c9609e0c466543dfec46dda9129fd9e469ece"
+    },
+    "public/overrides/assets/models/tower_column.glb": {
+      "source": "1.0.1",
+      "sha256": "79e0dc2af01bff49b191b9e13c440bc67d39b05987ce6e37927eff4a83089c7c"
+    },
+    "public/overrides/assets/models/tower_gengar_grave.glb": {
+      "source": "1.0.1",
+      "sha256": "157145d3c7746ccef68a60d308bfd43be2070c91dbb4aa1abc5d0dcdc9a203a3"
+    },
+    "public/overrides/assets/models/tower_grave_a.glb": {
+      "source": "1.0.1",
+      "sha256": "759161230b82827118f4f8f0f4117fb21ee827f0846471b3b7d222e2e8bbd9e9"
+    },
+    "public/overrides/assets/models/tower_grave_b.glb": {
+      "source": "1.0.1",
+      "sha256": "3a2022d5ce31500b7cecc726cb9f6300aa8a09829becbde165e63a8dfe575979"
+    },
+    "public/overrides/assets/models/tower_grave_c.glb": {
+      "source": "1.0.1",
+      "sha256": "a40c4849b043a7b841a80a08aaedacd84654c0737cfd2814a71a809eb4fb8098"
+    },
+    "public/overrides/assets/models/tower_marowak_shrine.glb": {
+      "source": "1.0.1",
+      "sha256": "743401256be6d50c55eea1eea7474f4502a97b0aaeeed0b8ac61bb98f9647108"
+    },
+    "public/overrides/assets/models/tower_pillar.glb": {
+      "source": "1.0.1",
+      "sha256": "7c29bcd3fe2bf79eb15156d5bd682310c67c2f7a0cec787e268f665234daf003"
+    },
+    "public/overrides/assets/models/tower_portal.glb": {
+      "source": "1.0.1",
+      "sha256": "3170de27e3520d1bc6fa5e1653a0c335347ef96b7ee05d844dfeaf1170593745"
+    },
+    "public/overrides/assets/models/tower_pots.glb": {
+      "source": "1.0.1",
+      "sha256": "67304bded52dfcde6bac12fb5007df3ab4251605bb4b9e72b0d77305284f73ff"
+    },
+    "public/overrides/assets/models/tower_rail.glb": {
+      "source": "1.0.1",
+      "sha256": "0b108d81a9ebd0f71806dd227c6a3d5c2afeac5e534c8a7f42ceb90524d5bd61"
+    },
+    "public/overrides/assets/models/tower_rubble.glb": {
+      "source": "1.0.1",
+      "sha256": "77eff1310394050f062b0b0a6ca4570a1b05d164de2eed8b8f1f872b4a83043b"
+    },
+    "public/overrides/assets/models/tower_spire.glb": {
+      "source": "1.0.1",
+      "sha256": "370a6f5d5e624a7f6d884498d7547a6826be7e058d53713a35dc061234250a81"
+    },
+    "public/overrides/assets/models/tower_stairs.glb": {
+      "source": "1.0.1",
+      "sha256": "d8d3234d6697336eae934eb00d35650a18168b4ed03bef9355fc3cc06d3c4d80"
+    },
+    "public/overrides/assets/models/tower_wall_bay.glb": {
+      "source": "1.0.1",
+      "sha256": "335b57cfb0fc4705c032a0b777dbb0400f370b843d1d45f03aa1e79405869d28"
+    },
+    "public/overrides/assets/models/tower_wall_plain.glb": {
+      "source": "1.0.1",
+      "sha256": "e74f182ddb596fb4ce40fb9e89aba30eb88d9c0e1d5bac52147e85ceaa6e3e5a"
+    },
+    "public/overrides/assets/pmd/1.png": {
+      "source": "1.5",
+      "sha256": "b34c933d6bc359dc312e629d57e5fcdd23bedd03e8372fde488faf59cdda67d4"
+    },
+    "public/overrides/assets/pmd/10.png": {
+      "source": "1.5",
+      "sha256": "f78201249b169766a60e4468eb9cb13d88e05457603f8c172e40ac7eb8b539f6"
+    },
+    "public/overrides/assets/pmd/100.png": {
+      "source": "1.5",
+      "sha256": "4582f7bc4a75a6c6072a7eda4613f02cb401fb73e1f0cc9cef96d87851d17091"
+    },
+    "public/overrides/assets/pmd/101.png": {
+      "source": "1.5",
+      "sha256": "42978a4e5a7dc8099a1e48f7929dca78568da2ccb074f0e0e9893a5ba65422d8"
+    },
+    "public/overrides/assets/pmd/102.png": {
+      "source": "1.5",
+      "sha256": "380ade3a109affd271491e1cf3dbbcdcded95b64a47b29056ac8b8847dc118a4"
+    },
+    "public/overrides/assets/pmd/103.png": {
+      "source": "1.5",
+      "sha256": "fadaa385a7b495cee8cd76dae26b0ab7f58ef2882bcae9c3c11854a7683514f0"
+    },
+    "public/overrides/assets/pmd/104.png": {
+      "source": "1.5",
+      "sha256": "8a1b6ae9c0516815b59d35f7c4f3ca0c52f4743949cf87752ba84e488308a171"
+    },
+    "public/overrides/assets/pmd/105.png": {
+      "source": "1.5",
+      "sha256": "bc5c80c10406ab4bc13fca9a886a275a3d55f9e563e2e2083b32cb0e03f457a1"
+    },
+    "public/overrides/assets/pmd/106.png": {
+      "source": "1.5",
+      "sha256": "2ae86e132d3b36f88b7abd0e3dd2430bbf349d30d0114f51bdafcae51eb7ccc2"
+    },
+    "public/overrides/assets/pmd/107.png": {
+      "source": "1.5",
+      "sha256": "c9a9255d72c614c71a88feaf76f646a532f60beaad3ae56207fd1401a95fbff0"
+    },
+    "public/overrides/assets/pmd/108.png": {
+      "source": "1.5",
+      "sha256": "0b8ea73759387091959b624c9c6cfe0d429566f787b1a69b883f157da0aaf6f2"
+    },
+    "public/overrides/assets/pmd/109.png": {
+      "source": "1.5",
+      "sha256": "91afab1801023ba14c920265a1d67efb098c0b7430c6c13756b3fcac1a11ee58"
+    },
+    "public/overrides/assets/pmd/11.png": {
+      "source": "1.5",
+      "sha256": "c7f7833c9f13c48b5f13a5018e566d2108a3df17bb9cfafee8086aaabe3fba38"
+    },
+    "public/overrides/assets/pmd/110.png": {
+      "source": "1.5",
+      "sha256": "3a3b82ec7e4610eae9f15487d2d820f148ba29f38c48f7138ec8dddebeabf493"
+    },
+    "public/overrides/assets/pmd/111.png": {
+      "source": "1.5",
+      "sha256": "f5bde7ce8277931b1263ad96f2a0b7fc5ce5a8e08aad226d126f52ce071c6713"
+    },
+    "public/overrides/assets/pmd/112.png": {
+      "source": "1.5",
+      "sha256": "7821dd740b9ed6a8b02d5689e8b38de67f2cd40a844213d814eead53ee63d9d2"
+    },
+    "public/overrides/assets/pmd/113.png": {
+      "source": "1.5",
+      "sha256": "3bf868468941793cc2181444e9866a30176e413e059c7cd32aa042ca47dd4e2c"
+    },
+    "public/overrides/assets/pmd/114.png": {
+      "source": "1.5",
+      "sha256": "69382dfbf77b615b4a3c0f1ab7138d895bdeaa245aa5ed52ff063622777f96e3"
+    },
+    "public/overrides/assets/pmd/115.png": {
+      "source": "1.5",
+      "sha256": "120181888c2f44a02aaae7b40205aea870ef92dbac0ae7dc762e047b107a6f62"
+    },
+    "public/overrides/assets/pmd/116.png": {
+      "source": "1.5",
+      "sha256": "467b67326eccccbbc006f0206c1135f5441986e5ca5879e94c6e29ef0da731fe"
+    },
+    "public/overrides/assets/pmd/117.png": {
+      "source": "1.5",
+      "sha256": "aefe3b38dbdab03c42f230bf3204979249700bf80c2f569db2ebb98cf91e2357"
+    },
+    "public/overrides/assets/pmd/118.png": {
+      "source": "1.5",
+      "sha256": "d07306cd1c390bc4c5bfdcf91b3de710e633412b810b550257cd0cd71c5dbba8"
+    },
+    "public/overrides/assets/pmd/119.png": {
+      "source": "1.5",
+      "sha256": "a14630d946ea30e5748412bcd74c1a2df8fac5e29fed4071475f032e6c6a2f1d"
+    },
+    "public/overrides/assets/pmd/12.png": {
+      "source": "1.5",
+      "sha256": "c33d74436adcf6d16795abf5f1f385f4629b578d59fffe88897148f098c06237"
+    },
+    "public/overrides/assets/pmd/120.png": {
+      "source": "1.5",
+      "sha256": "9dd80738f15c49bf93764e85eac21d99fcca2a0d5c8e13ca55892190e9167350"
+    },
+    "public/overrides/assets/pmd/121.png": {
+      "source": "1.5",
+      "sha256": "41f8763b1e15f4bdb8109f26b9058223bc654439d1d58cd18f629ec31a98fbe8"
+    },
+    "public/overrides/assets/pmd/122.png": {
+      "source": "1.5",
+      "sha256": "91e765d8a9173c61683da95ffc9a1ec1a1ca3d979a4e480e2390a47d1681bd15"
+    },
+    "public/overrides/assets/pmd/123.png": {
+      "source": "1.5",
+      "sha256": "cb4df765effaa879dc39b21a28fb8c43d1751320e542a507251f81a8c3c423ae"
+    },
+    "public/overrides/assets/pmd/124.png": {
+      "source": "1.5",
+      "sha256": "70ae2aa92b779bdc12040046eb66ea37d05917bb3825dac1a378a3fc17f20568"
+    },
+    "public/overrides/assets/pmd/125.png": {
+      "source": "1.5",
+      "sha256": "77e89fced4af1413656789d56941864cb0487e80f680f481ef8706227a63163f"
+    },
+    "public/overrides/assets/pmd/126.png": {
+      "source": "1.5",
+      "sha256": "d31e1e6bdebde58afbd817cf9ea0607ebc67733aa862d87edef01e3adaccb646"
+    },
+    "public/overrides/assets/pmd/127.png": {
+      "source": "1.5",
+      "sha256": "8ec9b34714142e09a2cd8801d0fcf08f9b50e15fd9a45c65cdc44ade5107a09a"
+    },
+    "public/overrides/assets/pmd/128.png": {
+      "source": "1.5",
+      "sha256": "91c0b507872fe484b755e724302c4bb6a61491ca4a390a51c1d64716bd010c5c"
+    },
+    "public/overrides/assets/pmd/129.png": {
+      "source": "1.5",
+      "sha256": "49a7a40397f445dc3b1074e1787e3dc0951ee4fa1493551d8258ce57e2e4b5de"
+    },
+    "public/overrides/assets/pmd/13.png": {
+      "source": "1.5",
+      "sha256": "6d00934ba18c63619b61b9dd74d489b21b68363b560d4f464391c573fd20c263"
+    },
+    "public/overrides/assets/pmd/130.png": {
+      "source": "1.5",
+      "sha256": "5d2c659c6284b6e65f43ec521f3b2561ce0d0f141c3aa568066b5c3cc5454a2e"
+    },
+    "public/overrides/assets/pmd/131.png": {
+      "source": "1.5",
+      "sha256": "40c1d7875d2dbabaf19d5a11de7f4292aba659867e9807f7731d8918ada3e044"
+    },
+    "public/overrides/assets/pmd/132.png": {
+      "source": "1.5",
+      "sha256": "5774fe6739c1aef674e481022a0c71091c499025a46864ba80fdb4c42e9f54a5"
+    },
+    "public/overrides/assets/pmd/133.png": {
+      "source": "1.5",
+      "sha256": "bdabcd64c41bf69ebce211e27c7229560c8a73172d3438f7d1b600198701efab"
+    },
+    "public/overrides/assets/pmd/134.png": {
+      "source": "1.5",
+      "sha256": "87a9b57ef41dc18053dce69fd7b7c8d2bb6408d88becfd16681288fde09657c0"
+    },
+    "public/overrides/assets/pmd/135.png": {
+      "source": "1.5",
+      "sha256": "a1f4421c7a106f0a30c4073d0c6adf24f83723deabc0c3efef7fa596e13f24d2"
+    },
+    "public/overrides/assets/pmd/136.png": {
+      "source": "1.5",
+      "sha256": "e639e66994a2ef0d86be3ef3d26faa44107604e4ffcfa0e37b9e4580ef06f900"
+    },
+    "public/overrides/assets/pmd/137.png": {
+      "source": "1.5",
+      "sha256": "9d23049f6a272a173b56b516c3030c00ffd8393ee4799c22ee9b69816192ed88"
+    },
+    "public/overrides/assets/pmd/138.png": {
+      "source": "1.5",
+      "sha256": "985f38155e3870615623806c5d839b2cb4ba60f9ca63d48ec36afb34f51e1773"
+    },
+    "public/overrides/assets/pmd/139.png": {
+      "source": "1.5",
+      "sha256": "33e8f54e21590506532237bd747bfe7e4440b9f7b70c39e1203ffc3330517bae"
+    },
+    "public/overrides/assets/pmd/14.png": {
+      "source": "1.5",
+      "sha256": "561f4a8695cb2d17ab3c702c3b27791e31f04f78f0108eeca687eab52166bfc3"
+    },
+    "public/overrides/assets/pmd/140.png": {
+      "source": "1.5",
+      "sha256": "dad7476e50bd23b419b1118bf9c998b9c0e7afda8a155caeb1a36c6a1c6d5a10"
+    },
+    "public/overrides/assets/pmd/141.png": {
+      "source": "1.5",
+      "sha256": "3f5f5a4a28b4608ec9dd9d32ead61317a2ed72d6f3daa2604ce7d34d7a649cc8"
+    },
+    "public/overrides/assets/pmd/142.png": {
+      "source": "1.5",
+      "sha256": "20b786f1fb967ba676b686c30de998702357a4bea1416318a1dfd95ead8f1f76"
+    },
+    "public/overrides/assets/pmd/143.png": {
+      "source": "1.5",
+      "sha256": "cbb73ea1628c3ad57016cf498ea59e32a7ca596adfed501a10e8dd1ff41e1124"
+    },
+    "public/overrides/assets/pmd/144.png": {
+      "source": "1.5",
+      "sha256": "315f998ffc851960e5e3b1dcf3e220819256bafcce735d7a1f19cfd4aa141913"
+    },
+    "public/overrides/assets/pmd/145.png": {
+      "source": "1.5",
+      "sha256": "5fc4b359b82301aed47f4752ee787fa953722b9fd27374f90d245326302938e5"
+    },
+    "public/overrides/assets/pmd/146.png": {
+      "source": "1.5",
+      "sha256": "1d4c2fa85630f00c21c904e6fd328c9fe4d8feaea2a9c6d65217609fcf2c9b9b"
+    },
+    "public/overrides/assets/pmd/147.png": {
+      "source": "1.5",
+      "sha256": "f0dccba4238ba020b815b5f86e0b64f31590e0a5667373adfb1c16968351a202"
+    },
+    "public/overrides/assets/pmd/148.png": {
+      "source": "1.5",
+      "sha256": "0e577d757cc85230187d904030ae0de452bb19318af8f8ae4c6fda831933a6d7"
+    },
+    "public/overrides/assets/pmd/149.png": {
+      "source": "1.5",
+      "sha256": "6671bc15477bef386ba9b748bfdbc8972d42d198bd2303b386796ff495113d93"
+    },
+    "public/overrides/assets/pmd/15.png": {
+      "source": "1.5",
+      "sha256": "4b77cd174df4b6efc96782e3e7f0c680bf90053fe38825b8522a3db7a45e52c7"
+    },
+    "public/overrides/assets/pmd/150.png": {
+      "source": "1.5",
+      "sha256": "09753da3a10023c04e67a266b81bc4e4f12d72bcdf453fce44b7347338480029"
+    },
+    "public/overrides/assets/pmd/151.png": {
+      "source": "1.5",
+      "sha256": "bd84638e610a4c235de3a484bfb4a37f92e41b3943230782eb18df776e566d9b"
+    },
+    "public/overrides/assets/pmd/16.png": {
+      "source": "1.5",
+      "sha256": "8fac78a6b7b1a491fe790ec6f2debdc96b2af66ed5bbd2705c16dc9c7e3b6edc"
+    },
+    "public/overrides/assets/pmd/17.png": {
+      "source": "1.5",
+      "sha256": "4df7088957384fdb889ba6af783ea09d4a4870968d338c535d9b39fa5f7c2bf0"
+    },
+    "public/overrides/assets/pmd/18.png": {
+      "source": "1.5",
+      "sha256": "8aa56d8b9a9aa25e9724b43129b840e576e1ddfac18dce9671f26a97ea0c5d73"
+    },
+    "public/overrides/assets/pmd/19.png": {
+      "source": "1.5",
+      "sha256": "588a3df36c2180980f258f29b845418fed6ee6e82a77186f48c42ac886fbdc61"
+    },
+    "public/overrides/assets/pmd/2.png": {
+      "source": "1.5",
+      "sha256": "56394eab0a432492e7e06b823293149b8b0a9a4d00a54887b2c810c9bc973e3c"
+    },
+    "public/overrides/assets/pmd/20.png": {
+      "source": "1.5",
+      "sha256": "8e18d53b86a29810873d563e01236d3f0edc5fe6c55bfc2d2dcfa64dbbc5724b"
+    },
+    "public/overrides/assets/pmd/21.png": {
+      "source": "1.5",
+      "sha256": "18b614abcbc74dd785ad3cf3bfe434136148d43d9addaa44c7c3b8cfb6224ba6"
+    },
+    "public/overrides/assets/pmd/22.png": {
+      "source": "1.5",
+      "sha256": "f8d922743aa57ab26fc4601619fdcaa474fb9cca16cd04f8248f47a64fade97c"
+    },
+    "public/overrides/assets/pmd/23.png": {
+      "source": "1.5",
+      "sha256": "918e30499cddcd2c62bf6b8a7870a7de37d84b4fc041a409a65e9670f60084f5"
+    },
+    "public/overrides/assets/pmd/24.png": {
+      "source": "1.5",
+      "sha256": "95261321647b838c474b31355f7558a19484d708dae3a8f538ae84bc0541dcad"
+    },
+    "public/overrides/assets/pmd/25.png": {
+      "source": "1.5",
+      "sha256": "e0202a6460a1a516c93a3ed41b39b0f9100818bea60f4c8e994aad8f51eaa610"
+    },
+    "public/overrides/assets/pmd/26.png": {
+      "source": "1.5",
+      "sha256": "a55af26c405133e6cf7be8169c6c55c5f4aacf3424ba366de62c7d41181e1b86"
+    },
+    "public/overrides/assets/pmd/27.png": {
+      "source": "1.5",
+      "sha256": "b18ec1fb2c16c845a965b332fa373f879a609b0ca71ed900776e64ada97dc744"
+    },
+    "public/overrides/assets/pmd/28.png": {
+      "source": "1.5",
+      "sha256": "3ae5c821d4e5d7869699149670112d6f6591e13225d8bdce5fc4b54eeeac18a3"
+    },
+    "public/overrides/assets/pmd/29.png": {
+      "source": "1.5",
+      "sha256": "2f7f5f9c42e103854b0b71515a914c82083c357ef7818fe60256cc4def965650"
+    },
+    "public/overrides/assets/pmd/3.png": {
+      "source": "1.5",
+      "sha256": "fa22e8f6404164b6eb08d6434b04ebe10731259b407bc77ebeae86ade258f784"
+    },
+    "public/overrides/assets/pmd/30.png": {
+      "source": "1.5",
+      "sha256": "34a76acc3bca7b475cb3f16dde918bb693c564ff695e7dd9ea15b0935e96fff4"
+    },
+    "public/overrides/assets/pmd/31.png": {
+      "source": "1.5",
+      "sha256": "ec4cc15bf49ba412b5ef28c2292bcb84d3004d585ec4e2cf3f2158d7f01f22bd"
+    },
+    "public/overrides/assets/pmd/32.png": {
+      "source": "1.5",
+      "sha256": "3437a596a5df56623f98eb5160b48fde8a2dc94eb103293edeac31f8299d83fe"
+    },
+    "public/overrides/assets/pmd/33.png": {
+      "source": "1.5",
+      "sha256": "7c4fba97f549fd14f3334241502a0c0ec49477b4aacb6bdfe1150c3ff5831198"
+    },
+    "public/overrides/assets/pmd/34.png": {
+      "source": "1.5",
+      "sha256": "889dab29b9b4d3f87941c31f52cf8a682ec20ae28566508381badf2789dafbbb"
+    },
+    "public/overrides/assets/pmd/35.png": {
+      "source": "1.5",
+      "sha256": "257d9dcd157e74a9b42424fcd728a8de8a40150432f14ac5395d828eb662a8b6"
+    },
+    "public/overrides/assets/pmd/36.png": {
+      "source": "1.5",
+      "sha256": "f332dfa6f149dab5e95e9bc73b2208c74aa78aaa8425b8b4525836804fdbfc73"
+    },
+    "public/overrides/assets/pmd/37.png": {
+      "source": "1.5",
+      "sha256": "aa30a57d63f3c4c61c1b635a126067d35b4ec8f3b4a5b02ffa8efa028ceb77f4"
+    },
+    "public/overrides/assets/pmd/38.png": {
+      "source": "1.5",
+      "sha256": "180281bde477d588258b0b2d230a336cba445152aee50ecfa7a0386d8ea68eda"
+    },
+    "public/overrides/assets/pmd/39.png": {
+      "source": "1.5",
+      "sha256": "c137abbf84e45fb00ce3061da1ff3a0d11fe8eebc5844f21233c7f4fb506514d"
+    },
+    "public/overrides/assets/pmd/4.png": {
+      "source": "1.5",
+      "sha256": "26fcc7f6fb34d8c793f17dd1a0d4925145c461b0a765c1d196f87f7fe6f88a98"
+    },
+    "public/overrides/assets/pmd/40.png": {
+      "source": "1.5",
+      "sha256": "433777c4028aa7b5c07f6de6939f937901aa0cfb191c9e6eaf749a6669465786"
+    },
+    "public/overrides/assets/pmd/41.png": {
+      "source": "1.5",
+      "sha256": "596d365cd50c407d96e2d0ce2118985f148f2967a7dfc190c1ce214888be71f5"
+    },
+    "public/overrides/assets/pmd/42.png": {
+      "source": "1.5",
+      "sha256": "d926b716a86dc2e77b10feb123e407b845c63d821da756e117f826caa8e038be"
+    },
+    "public/overrides/assets/pmd/43.png": {
+      "source": "1.5",
+      "sha256": "961b2efbb0f370cc819faced0deb20c5e985917e8db3fa0127a5b992481bdc23"
+    },
+    "public/overrides/assets/pmd/44.png": {
+      "source": "1.5",
+      "sha256": "9eadf3c5075562d02e18374d986bb9db46ab9a8e142fc7b635a47000e101f766"
+    },
+    "public/overrides/assets/pmd/45.png": {
+      "source": "1.5",
+      "sha256": "1ac8a45fd205fa4a3fab2005738d9ce9e05968425ef5e482b95ab912534c5512"
+    },
+    "public/overrides/assets/pmd/46.png": {
+      "source": "1.5",
+      "sha256": "15e9152c16fb19efa65ef67cb9c5c094c0829bc5f111abd62f958f043668a90d"
+    },
+    "public/overrides/assets/pmd/47.png": {
+      "source": "1.5",
+      "sha256": "621ed67814db1ce0d89db4891119d899731569de9cba8d7e1d36809890d58942"
+    },
+    "public/overrides/assets/pmd/48.png": {
+      "source": "1.5",
+      "sha256": "9a73d34c6797ca86e8105c934b8fd8cb0f84d737092fab317893815ff7e871b1"
+    },
+    "public/overrides/assets/pmd/49.png": {
+      "source": "1.5",
+      "sha256": "01aba49d9d49220db5b1bf660400b0ca0366f86cb4e5e619e881fe8a295e0960"
+    },
+    "public/overrides/assets/pmd/5.png": {
+      "source": "1.5",
+      "sha256": "8db4b77301575c40194400e7adc8c82ffbdb36f75e87b1c37b5cc70f50304bd0"
+    },
+    "public/overrides/assets/pmd/50.png": {
+      "source": "1.5",
+      "sha256": "4f272877d827d9b33baf36cf63320f8fd36c4d6d59414cb85109bf6a99a81121"
+    },
+    "public/overrides/assets/pmd/51.png": {
+      "source": "1.5",
+      "sha256": "44767cb9d80a91b10dedea4afdf0ffb202b9e491a616c1e912a3d4dc0b726f92"
+    },
+    "public/overrides/assets/pmd/52.png": {
+      "source": "1.5",
+      "sha256": "0e5f2ac61e92bbde941383ff53520c1440e1f58e82e102defe772f737b0c613e"
+    },
+    "public/overrides/assets/pmd/53.png": {
+      "source": "1.5",
+      "sha256": "f94097f688ffbf41aeb0b01cfda135f28a7721d1e0e8b6b9572d522f7d313e6e"
+    },
+    "public/overrides/assets/pmd/54.png": {
+      "source": "1.5",
+      "sha256": "e25e1348ae2a8db81a6a03b4a83541a4b3c8f7b9508aa3f4671893415d4ca1a7"
+    },
+    "public/overrides/assets/pmd/55.png": {
+      "source": "1.5",
+      "sha256": "274b1468f93de6fb421f0b9f22034d4e1ad151f614cb5a536d4b532099ea01ed"
+    },
+    "public/overrides/assets/pmd/56.png": {
+      "source": "1.5",
+      "sha256": "9980615cc690782b623e14f39c4783c145b1a6ec2dab504267f94b1b32e87fdb"
+    },
+    "public/overrides/assets/pmd/57.png": {
+      "source": "1.5",
+      "sha256": "f95c9c93bde33dc409f4454958a4133770ca41de8ef115fef5b0e3b402c2eaeb"
+    },
+    "public/overrides/assets/pmd/58.png": {
+      "source": "1.5",
+      "sha256": "5affc577d4b0f46a3fcd622e920cef1e6c7ac9ad9ff3b2538ef4d91d1430ca5f"
+    },
+    "public/overrides/assets/pmd/59.png": {
+      "source": "1.5",
+      "sha256": "4bcd3dc3ebd0a40f7cdb2f805a125691fad2d68aa523b01230d00910b62d6961"
+    },
+    "public/overrides/assets/pmd/6.png": {
+      "source": "1.5",
+      "sha256": "11b5485e1aba826be1524930a781a84f1c9196705432f24bb13cd6c29f542990"
+    },
+    "public/overrides/assets/pmd/60.png": {
+      "source": "1.5",
+      "sha256": "030358666c186838d626258d1a9e2e6d0b7798d12612da887e1e29c9ec194a36"
+    },
+    "public/overrides/assets/pmd/61.png": {
+      "source": "1.5",
+      "sha256": "b1736466cc87fe696a2d4fb91990e74573745eafa2075d475049b8ec6fca4949"
+    },
+    "public/overrides/assets/pmd/62.png": {
+      "source": "1.5",
+      "sha256": "e27dc315f09a8d1ed273666bc6ff055d4b4a1fa76774cb9c8b56b988bf6c5723"
+    },
+    "public/overrides/assets/pmd/63.png": {
+      "source": "1.5",
+      "sha256": "fc32edc2902835765234d22f822e27ecf16ba5792779bc13ec8e8d2eda4831db"
+    },
+    "public/overrides/assets/pmd/64.png": {
+      "source": "1.5",
+      "sha256": "8ba21ca7df491595404cc1b80fec44e0a40326d7f073483b244e1858e7e63227"
+    },
+    "public/overrides/assets/pmd/65.png": {
+      "source": "1.5",
+      "sha256": "10c9f3b11029a277b51af619280e15d42e33d41e41179a95b259f7e42e315240"
+    },
+    "public/overrides/assets/pmd/66.png": {
+      "source": "1.5",
+      "sha256": "3cafbc03616b3fee1abf5e3f57ce9644b13c8a042646ab9029f9e085c31861d1"
+    },
+    "public/overrides/assets/pmd/67.png": {
+      "source": "1.5",
+      "sha256": "3448ed1aa9bd6733e826ddc1b5209a7f8a968116c8d87f32c618397a37cffc1c"
+    },
+    "public/overrides/assets/pmd/68.png": {
+      "source": "1.5",
+      "sha256": "4931904268f72b3632a0b8540b906af32e7396f0a97b4e99226398c19f7efec4"
+    },
+    "public/overrides/assets/pmd/69.png": {
+      "source": "1.5",
+      "sha256": "ccdd41331309d45944fe956c23f0eff8f133d96590af7489a3af594d742a127d"
+    },
+    "public/overrides/assets/pmd/7.png": {
+      "source": "1.5",
+      "sha256": "d434c98de482b250167a16eedf8eb2ea967b082fbd7f65af44c391409c86d634"
+    },
+    "public/overrides/assets/pmd/70.png": {
+      "source": "1.5",
+      "sha256": "b55657ac77be80af0eb53fc29a7775d588f14cc2912f2e7fda2dd1f4e416a303"
+    },
+    "public/overrides/assets/pmd/71.png": {
+      "source": "1.5",
+      "sha256": "5ec986b9fba3ff0540c8dd6fd25006ec2bb628327681a204a68be932421f192b"
+    },
+    "public/overrides/assets/pmd/72.png": {
+      "source": "1.5",
+      "sha256": "82679417fdaafc15f071022b96866edba040ff13a309b8c31a4344896a701017"
+    },
+    "public/overrides/assets/pmd/73.png": {
+      "source": "1.5",
+      "sha256": "96f1a64263859aead77f129b73ed988aedffeea540aa81c72690a7365ceb3f6f"
+    },
+    "public/overrides/assets/pmd/74.png": {
+      "source": "1.5",
+      "sha256": "ad49330f588560e39663f385252173c270ca2e53d062ae9a87b7c2119422f2af"
+    },
+    "public/overrides/assets/pmd/75.png": {
+      "source": "1.5",
+      "sha256": "98e3dab277d642546dc7e2b860d19853d210727c4d62d2e418cc12d5f4a23424"
+    },
+    "public/overrides/assets/pmd/76.png": {
+      "source": "1.5",
+      "sha256": "f74fda2a064bf312ccf87261c10f904d9c66640b239990d98f2ad229df5842e5"
+    },
+    "public/overrides/assets/pmd/77.png": {
+      "source": "1.5",
+      "sha256": "e7b51a3e2effc25a8c9abec363ce3043472621ae8fd4aa3204aea44a2f44b397"
+    },
+    "public/overrides/assets/pmd/78.png": {
+      "source": "1.5",
+      "sha256": "9185a73036f1e068fb0906de890d9d37261412477ad43cd84c41da3348f5902e"
+    },
+    "public/overrides/assets/pmd/79.png": {
+      "source": "1.5",
+      "sha256": "c55d900d6dd1065ba9ad419f55726884ccc7cff9471de885f05345084d868f65"
+    },
+    "public/overrides/assets/pmd/8.png": {
+      "source": "1.5",
+      "sha256": "3516be64e68935beffaf839b6a25ed3502d90830fbe3f7ccdc1b5caba1e22990"
+    },
+    "public/overrides/assets/pmd/80.png": {
+      "source": "1.5",
+      "sha256": "fb5fd06d261f42a1ff7b7999d7279c57e7280d9c3203d605b50bcb45721424e4"
+    },
+    "public/overrides/assets/pmd/81.png": {
+      "source": "1.5",
+      "sha256": "8d738093bc6aea3ca8fae8a9c79f9c73c87e5e44ec9d346f135ae0285ee165f1"
+    },
+    "public/overrides/assets/pmd/82.png": {
+      "source": "1.5",
+      "sha256": "fcf64d0ca55542856007445b1f9e9c563d467eab810eb57c22cac0ea64f1dbcd"
+    },
+    "public/overrides/assets/pmd/83.png": {
+      "source": "1.5",
+      "sha256": "b9632ecf76c61a8228210349bbf392df03d563b9cf228ccb8a8b8f3b15768d9a"
+    },
+    "public/overrides/assets/pmd/84.png": {
+      "source": "1.5",
+      "sha256": "f82f6ec767439055f81b2832a705d6c631a7d65f9784b33bed4142e86539057b"
+    },
+    "public/overrides/assets/pmd/85.png": {
+      "source": "1.5",
+      "sha256": "48488bea123831511502331622d30075407215e39af7cc9742fb121c34836dc3"
+    },
+    "public/overrides/assets/pmd/86.png": {
+      "source": "1.5",
+      "sha256": "3014533282237db4257ebd10d4cd9e55e028803fa3d1337f738e18e6d21ab728"
+    },
+    "public/overrides/assets/pmd/87.png": {
+      "source": "1.5",
+      "sha256": "5ff100d47a2e87a88a0435628bb631793d859300f8d5ddcb37533f4451e4f912"
+    },
+    "public/overrides/assets/pmd/88.png": {
+      "source": "1.5",
+      "sha256": "ff59acb7f7dea3f279801c947e8c9cf0140acf9e6fcbba9fd6576e968d6ba0b1"
+    },
+    "public/overrides/assets/pmd/89.png": {
+      "source": "1.5",
+      "sha256": "14546ca9a01d5350ec8c98e2f0ab4f465c9ceb554fc8420f139d5f753b88091e"
+    },
+    "public/overrides/assets/pmd/9.png": {
+      "source": "1.5",
+      "sha256": "a43889157874d2efc7ae50313a0ec9491f3982833e74e4bc3825ff0fc7d31fd7"
+    },
+    "public/overrides/assets/pmd/90.png": {
+      "source": "1.5",
+      "sha256": "add3fcd970b9fbf4aac531b2b1a2acf2ad4f5a3f9e3e256970aef8c7ad967338"
+    },
+    "public/overrides/assets/pmd/91.png": {
+      "source": "1.5",
+      "sha256": "d66c0dbf9153b188c3eef18ac9c8824db85d8e13721e9f4d8d4e39ae975d6b3c"
+    },
+    "public/overrides/assets/pmd/92.png": {
+      "source": "1.5",
+      "sha256": "73304844dc328a80c35696dd59c1e73edc57ca68d7568648ea900e507a9a4899"
+    },
+    "public/overrides/assets/pmd/93.png": {
+      "source": "1.5",
+      "sha256": "cb3f3909263906f83fa5e30c47706531d8dca1a7db8506877df77c92664157d6"
+    },
+    "public/overrides/assets/pmd/94.png": {
+      "source": "1.5",
+      "sha256": "b19a4b84160810f513072b4cc39e2dd52d37cac6d3f6ecd2c22974b9869b924a"
+    },
+    "public/overrides/assets/pmd/95.png": {
+      "source": "1.5",
+      "sha256": "7bfac65f0023ae6aeb3773e168bfc7963e4ecf25b4ff4103cb55c3d8f402688e"
+    },
+    "public/overrides/assets/pmd/96.png": {
+      "source": "1.5",
+      "sha256": "e9dbc719ebb349523e74191bea4d7b90372189c85119abc37a06687f6517d607"
+    },
+    "public/overrides/assets/pmd/97.png": {
+      "source": "1.5",
+      "sha256": "d938e49679a53f4e23744ef3c40138734b13880897dece73759f99baf97914a0"
+    },
+    "public/overrides/assets/pmd/98.png": {
+      "source": "1.5",
+      "sha256": "73c45943545c0cc83f23daeec86ac7a936c34e674341a80280ce3f7613030c53"
+    },
+    "public/overrides/assets/pmd/99.png": {
+      "source": "1.5",
+      "sha256": "af09e7604ded3b655d0cb743ed2791f6fd198a4cdd5330157350942ffca11e50"
+    },
+    "public/overrides/assets/portraits/1.png": {
+      "source": "1.5",
+      "sha256": "b9b0582c182a95dbd617612a0b6e378ae007b775bd9bf084222bf0bf8c901dc7"
+    },
+    "public/overrides/assets/portraits/10.png": {
+      "source": "1.5",
+      "sha256": "3366a3ce9827646d3453758bd99949b8d9528b4cb0aa7d06502da45dcc2781aa"
+    },
+    "public/overrides/assets/portraits/100.png": {
+      "source": "1.5",
+      "sha256": "686b9c02d8cc32ef2ed269f8a22b23517bd9ff23b13efd200ec9b8e5a05a0969"
+    },
+    "public/overrides/assets/portraits/101.png": {
+      "source": "1.5",
+      "sha256": "bde7d8a94d198b793199d3e51ab333050579db9e249f00a99dd86bfa9d103c74"
+    },
+    "public/overrides/assets/portraits/102.png": {
+      "source": "1.5",
+      "sha256": "f6bd03a57ca6d1973b443054ffde390b5d5deec573939c0e4621ceed67bc86f8"
+    },
+    "public/overrides/assets/portraits/103.png": {
+      "source": "1.5",
+      "sha256": "8017805a7c1d679da92db7ad536e87457f306c095ab588ad0454f81ced9a5207"
+    },
+    "public/overrides/assets/portraits/104.png": {
+      "source": "1.5",
+      "sha256": "f84a6d727dad4358ec5e470827945912be084dfa9df5b8925cc9758fa928ea7b"
+    },
+    "public/overrides/assets/portraits/105.png": {
+      "source": "1.5",
+      "sha256": "fac939d54c230eb871420c0dcedc1d1e6d6ef8683a8756043200fe23ccbc9986"
+    },
+    "public/overrides/assets/portraits/106.png": {
+      "source": "1.5",
+      "sha256": "c1e6cf78b8bb955496e76f99afb6c697d1992b837e4076e50843ccdf021d5395"
+    },
+    "public/overrides/assets/portraits/107.png": {
+      "source": "1.5",
+      "sha256": "88d9efac8d27c0204003957d98ad024a63f9fa3643c5cb8c3f65c7ce7bbcfc82"
+    },
+    "public/overrides/assets/portraits/108.png": {
+      "source": "1.5",
+      "sha256": "d64d99fcecd557335ef8e669595813dbdf330d6f6d538c87695f16843da5b900"
+    },
+    "public/overrides/assets/portraits/109.png": {
+      "source": "1.5",
+      "sha256": "01b750832476383547a5d04f73b9b181d38087581d0b2b8b3c2a6914f66861e3"
+    },
+    "public/overrides/assets/portraits/11.png": {
+      "source": "1.5",
+      "sha256": "3a5cd70e9e2aa20680cf244af8061b20b6e909383bc51edefca58ff5d21850b9"
+    },
+    "public/overrides/assets/portraits/110.png": {
+      "source": "1.5",
+      "sha256": "244c67c6f62d8a5d2196fdc1578fe373601c89d5b2bddb39bd3fd578dc0d4bf6"
+    },
+    "public/overrides/assets/portraits/111.png": {
+      "source": "1.5",
+      "sha256": "a64b7ed9845ddf26b7097aba147a49b18018aa7ddc143084c69ef8ec0e7e02b9"
+    },
+    "public/overrides/assets/portraits/112.png": {
+      "source": "1.5",
+      "sha256": "d0f2155ae9960e22fcafae04d869d7677ab0b99375377dae2745cf9b487cabda"
+    },
+    "public/overrides/assets/portraits/113.png": {
+      "source": "1.5",
+      "sha256": "7ce19029baaeae8818c14ac2f12d27ea47a02be8a6cf56c337995d9271b1a395"
+    },
+    "public/overrides/assets/portraits/114.png": {
+      "source": "1.5",
+      "sha256": "e58a41a94e1b6d44a744bc099c7ceb40dc2a2486dfda96de02487b310e893891"
+    },
+    "public/overrides/assets/portraits/115.png": {
+      "source": "1.5",
+      "sha256": "f6865ee0f81655309efc1344dbf0a062d2ad1abc1674d49352525ac1fead73fa"
+    },
+    "public/overrides/assets/portraits/116.png": {
+      "source": "1.5",
+      "sha256": "c35848af77e92f7ed1bbed655759f1d987816e943c367ad1fef01fd0620dbdb6"
+    },
+    "public/overrides/assets/portraits/117.png": {
+      "source": "1.5",
+      "sha256": "e419849876ddfb81b12e7c5112bccbc28b6d88e30150d9268324b0add524d8f3"
+    },
+    "public/overrides/assets/portraits/118.png": {
+      "source": "1.5",
+      "sha256": "b7db3f31be44e5a25701ed99327cf9d5e722b3105014b49e6e5e02027eff2f70"
+    },
+    "public/overrides/assets/portraits/119.png": {
+      "source": "1.5",
+      "sha256": "5fd81d3732584778e076e4bde3fdc47678a71425689b723f0aaa12a8544a6715"
+    },
+    "public/overrides/assets/portraits/12.png": {
+      "source": "1.5",
+      "sha256": "467f3c5850b8801e12c9a1748267cd2ad461d16ac495be06740857be840272a5"
+    },
+    "public/overrides/assets/portraits/120.png": {
+      "source": "1.5",
+      "sha256": "e8dc82fd662db89c0dc8a99af63a62afb1cfd62ee2660708925b2ce85bc59b9d"
+    },
+    "public/overrides/assets/portraits/121.png": {
+      "source": "1.5",
+      "sha256": "a616a5f0d34601aa92ecdf6f1ebd6ef6fdac4b4f99acfd70d3faff2719bebf55"
+    },
+    "public/overrides/assets/portraits/122.png": {
+      "source": "1.5",
+      "sha256": "cc8e09260564977ac759a10084c082d5e410023f30550817c3bf8c2758dc9ba2"
+    },
+    "public/overrides/assets/portraits/123.png": {
+      "source": "1.5",
+      "sha256": "8e2365248f7d0e98414de3f197fb197a24890347e7c5b2f5c40d4d1fda468a6e"
+    },
+    "public/overrides/assets/portraits/124.png": {
+      "source": "1.5",
+      "sha256": "7b4d2888713399c6280998ef984afdc7e2aefbce6f0830a1962b30ebc6a1c9f0"
+    },
+    "public/overrides/assets/portraits/125.png": {
+      "source": "1.5",
+      "sha256": "dfd9905ee72d6bea5adfef219a64d9597583bd2a4c51b61fec1578638833848d"
+    },
+    "public/overrides/assets/portraits/126.png": {
+      "source": "1.5",
+      "sha256": "fd37eb14dc1fad9c83b4ccd784ff63121c63f6d3129a0c785f26db215cfa0e23"
+    },
+    "public/overrides/assets/portraits/127.png": {
+      "source": "1.5",
+      "sha256": "8bc69ef82da435d68c1a74f99144f0a13258a967ea3015e1808127636dba654c"
+    },
+    "public/overrides/assets/portraits/128.png": {
+      "source": "1.5",
+      "sha256": "78d8726c2d5c59adf58bbc8fd3e74ee6cbe402484a8f77be4d12ce9e330fab41"
+    },
+    "public/overrides/assets/portraits/129.png": {
+      "source": "1.5",
+      "sha256": "5e9e6be640c8895f0df8913d7b69320881fe7b6b484823600ba8fb8ea0c4580e"
+    },
+    "public/overrides/assets/portraits/13.png": {
+      "source": "1.5",
+      "sha256": "66d30cf46df2a713a233c9c8cd3f977ee4f390c7911e1eaa3ea3726c13b3a9ac"
+    },
+    "public/overrides/assets/portraits/130.png": {
+      "source": "1.5",
+      "sha256": "8d739548abe59366f4adc84b5ac6d96f77a0f174377c2fbea908a42074d8e49f"
+    },
+    "public/overrides/assets/portraits/131.png": {
+      "source": "1.5",
+      "sha256": "af1522e84a6bc48676d29dec54fc70c16402fd7eca43155b658ff41a4a7f3c02"
+    },
+    "public/overrides/assets/portraits/132.png": {
+      "source": "1.5",
+      "sha256": "fac939d54c230eb871420c0dcedc1d1e6d6ef8683a8756043200fe23ccbc9986"
+    },
+    "public/overrides/assets/portraits/133.png": {
+      "source": "1.5",
+      "sha256": "8f338db54aa8d7ca859d701f476d4e3036191c58a3def7ece99cef5234eed886"
+    },
+    "public/overrides/assets/portraits/134.png": {
+      "source": "1.5",
+      "sha256": "1d8877b8840a3cee89575977406998191da9e98cdc52619e5c99adcef5c255e3"
+    },
+    "public/overrides/assets/portraits/135.png": {
+      "source": "1.5",
+      "sha256": "80edb731e5529ff4fb3d5f270129d41510be65d8de7da0db11392853fce61789"
+    },
+    "public/overrides/assets/portraits/136.png": {
+      "source": "1.5",
+      "sha256": "c6eeeb1501e110be6fdde6566a14440d3ad385d886ea9d08b4cc36034f91a0dc"
+    },
+    "public/overrides/assets/portraits/137.png": {
+      "source": "1.5",
+      "sha256": "4c2d524748ba363f784d1b9e2f19f216ececa434f8443dede743e34d2dbdb353"
+    },
+    "public/overrides/assets/portraits/138.png": {
+      "source": "1.5",
+      "sha256": "a64b7ed9845ddf26b7097aba147a49b18018aa7ddc143084c69ef8ec0e7e02b9"
+    },
+    "public/overrides/assets/portraits/139.png": {
+      "source": "1.5",
+      "sha256": "d0f2155ae9960e22fcafae04d869d7677ab0b99375377dae2745cf9b487cabda"
+    },
+    "public/overrides/assets/portraits/14.png": {
+      "source": "1.5",
+      "sha256": "3a5cd70e9e2aa20680cf244af8061b20b6e909383bc51edefca58ff5d21850b9"
+    },
+    "public/overrides/assets/portraits/140.png": {
+      "source": "1.5",
+      "sha256": "7ce19029baaeae8818c14ac2f12d27ea47a02be8a6cf56c337995d9271b1a395"
+    },
+    "public/overrides/assets/portraits/141.png": {
+      "source": "1.5",
+      "sha256": "90d469f2174320947b3dabe7fda8b8759a0248ca859c016a3ac10223ca0dc026"
+    },
+    "public/overrides/assets/portraits/142.png": {
+      "source": "1.5",
+      "sha256": "f6865ee0f81655309efc1344dbf0a062d2ad1abc1674d49352525ac1fead73fa"
+    },
+    "public/overrides/assets/portraits/143.png": {
+      "source": "1.5",
+      "sha256": "4d89db8d9eed5a67071305def26c0934bddaee6df18e0764ecbc612fee42034e"
+    },
+    "public/overrides/assets/portraits/144.png": {
+      "source": "1.5",
+      "sha256": "e8dc82fd662db89c0dc8a99af63a62afb1cfd62ee2660708925b2ce85bc59b9d"
+    },
+    "public/overrides/assets/portraits/145.png": {
+      "source": "1.5",
+      "sha256": "cf153e3a2badf2beb25ce8118d0fe5acd524d399254b0744b46ac351d24ae978"
+    },
+    "public/overrides/assets/portraits/146.png": {
+      "source": "1.5",
+      "sha256": "fd37eb14dc1fad9c83b4ccd784ff63121c63f6d3129a0c785f26db215cfa0e23"
+    },
+    "public/overrides/assets/portraits/147.png": {
+      "source": "1.5",
+      "sha256": "af75127638b9805df9de61e9e3d18dd5a1b3345f15ecaab48f57c755dcc152ca"
+    },
+    "public/overrides/assets/portraits/148.png": {
+      "source": "1.5",
+      "sha256": "124c2ff787dfb9f98bd2c1f4643ed58c8c018d53235d82d165082ff9f9dd5bf6"
+    },
+    "public/overrides/assets/portraits/149.png": {
+      "source": "1.5",
+      "sha256": "9f120881c7767dbc1af905d1b7e6d4836d11132a1ccc803bec3f4403f772bd93"
+    },
+    "public/overrides/assets/portraits/15.png": {
+      "source": "1.5",
+      "sha256": "66d30cf46df2a713a233c9c8cd3f977ee4f390c7911e1eaa3ea3726c13b3a9ac"
+    },
+    "public/overrides/assets/portraits/150.png": {
+      "source": "1.5",
+      "sha256": "68fb7c7db0a46726666b9c0dcb7363d0c3cd74b50e6258c84dc8f5bcb138de15"
+    },
+    "public/overrides/assets/portraits/151.png": {
+      "source": "1.5",
+      "sha256": "94b6bdd9dcace15f99cc843bf3e557e56b501f6805ef05d16a6f706d91e28083"
+    },
+    "public/overrides/assets/portraits/16.png": {
+      "source": "1.5",
+      "sha256": "d850939704352da6069336ca411e1d3b00a697ea97d9841567f6f88e8376ae15"
+    },
+    "public/overrides/assets/portraits/17.png": {
+      "source": "1.5",
+      "sha256": "a8fdb85e32591eff1c7c8438afd98745742f34f0ad0b2b30d8d83ee688366bc3"
+    },
+    "public/overrides/assets/portraits/18.png": {
+      "source": "1.5",
+      "sha256": "a8fdb85e32591eff1c7c8438afd98745742f34f0ad0b2b30d8d83ee688366bc3"
+    },
+    "public/overrides/assets/portraits/19.png": {
+      "source": "1.5",
+      "sha256": "d63c8f669bfdae44f8e6b60379162cab6432965ed48e972b240e44dc85699c43"
+    },
+    "public/overrides/assets/portraits/2.png": {
+      "source": "1.5",
+      "sha256": "3dc92b846d141346e409188ea77cdb407f80c84ac20973b5a6e3403649cc3dec"
+    },
+    "public/overrides/assets/portraits/20.png": {
+      "source": "1.5",
+      "sha256": "0aec97541b538894579e54700ac886acb5ad00e06006b552b96a134ec11a96c3"
+    },
+    "public/overrides/assets/portraits/21.png": {
+      "source": "1.5",
+      "sha256": "038326b032248cd4fbaa33d9346310b63bbfb7523a59f75b817fd50884be1e9e"
+    },
+    "public/overrides/assets/portraits/22.png": {
+      "source": "1.5",
+      "sha256": "183a719cca9e499780dafdab38fcfca06c255b0177026e0dd94a8cf3180808ae"
+    },
+    "public/overrides/assets/portraits/23.png": {
+      "source": "1.5",
+      "sha256": "15095fa829e73cb2c84c8002979043d6faab2377d7eeac388c1a6c039780fe1d"
+    },
+    "public/overrides/assets/portraits/24.png": {
+      "source": "1.5",
+      "sha256": "c3534ca17b67680486bce1f5dc6ee967351e7089b756578d8090bee29f5604c1"
+    },
+    "public/overrides/assets/portraits/25.png": {
+      "source": "1.5",
+      "sha256": "cf153e3a2badf2beb25ce8118d0fe5acd524d399254b0744b46ac351d24ae978"
+    },
+    "public/overrides/assets/portraits/26.png": {
+      "source": "1.5",
+      "sha256": "73c4e60d427f45d5a5aea936e35eb640c8d53d370ad9356ce1c717131e7173fd"
+    },
+    "public/overrides/assets/portraits/27.png": {
+      "source": "1.5",
+      "sha256": "d64d99fcecd557335ef8e669595813dbdf330d6f6d538c87695f16843da5b900"
+    },
+    "public/overrides/assets/portraits/28.png": {
+      "source": "1.5",
+      "sha256": "95a86172a86751cc506edca65c3ca09adb6066b06928dcc55130e9890998a1ee"
+    },
+    "public/overrides/assets/portraits/29.png": {
+      "source": "1.5",
+      "sha256": "01b750832476383547a5d04f73b9b181d38087581d0b2b8b3c2a6914f66861e3"
+    },
+    "public/overrides/assets/portraits/3.png": {
+      "source": "1.5",
+      "sha256": "dbb10bc5d403ef5f7d49258557a0e5a6ffaea05e504df6908fd0a152354e8aeb"
+    },
+    "public/overrides/assets/portraits/30.png": {
+      "source": "1.5",
+      "sha256": "244c67c6f62d8a5d2196fdc1578fe373601c89d5b2bddb39bd3fd578dc0d4bf6"
+    },
+    "public/overrides/assets/portraits/31.png": {
+      "source": "1.5",
+      "sha256": "e30675a951e64f2537b77d47b51492702ef4f79142d68b8d48c6c7445cb94a2c"
+    },
+    "public/overrides/assets/portraits/32.png": {
+      "source": "1.5",
+      "sha256": "f2ae94dcae881700c8e69f21891fc485e217f031152e8c2d358e27159b1d311d"
+    },
+    "public/overrides/assets/portraits/33.png": {
+      "source": "1.5",
+      "sha256": "2d835eb1b8a3ba84573b5c6a7c33014ada44504ddb47de5d02adbda77501a3ec"
+    },
+    "public/overrides/assets/portraits/34.png": {
+      "source": "1.5",
+      "sha256": "963abf3d43367b4fb6de721bf433d3d8d996c956bb9fb56adb525a4932ea7d88"
+    },
+    "public/overrides/assets/portraits/35.png": {
+      "source": "1.5",
+      "sha256": "90e3cac7b4e68b0e0b71451b115ce0b8ab42d0239a43a1f6d7c3a2cc09f40e3f"
+    },
+    "public/overrides/assets/portraits/36.png": {
+      "source": "1.5",
+      "sha256": "7fb135376d3662e30b5e9d48a0a8348fc94fc998c4b510b2eff43a4a80bb4f4e"
+    },
+    "public/overrides/assets/portraits/37.png": {
+      "source": "1.5",
+      "sha256": "e8374183bcefcf0587d49e49210fa5aa1173a6eaa1cefaff41bc1dca7ae6de7c"
+    },
+    "public/overrides/assets/portraits/38.png": {
+      "source": "1.5",
+      "sha256": "a84c8801a40fc51ac35fe01ea29e5afbca94d3514274fe1005a471d6b281a00b"
+    },
+    "public/overrides/assets/portraits/39.png": {
+      "source": "1.5",
+      "sha256": "af75127638b9805df9de61e9e3d18dd5a1b3345f15ecaab48f57c755dcc152ca"
+    },
+    "public/overrides/assets/portraits/4.png": {
+      "source": "1.5",
+      "sha256": "b125e13b2eea9f70bd2de450a319832ea33eb2fcb65afd9f1a248f276dda8711"
+    },
+    "public/overrides/assets/portraits/40.png": {
+      "source": "1.5",
+      "sha256": "124c2ff787dfb9f98bd2c1f4643ed58c8c018d53235d82d165082ff9f9dd5bf6"
+    },
+    "public/overrides/assets/portraits/41.png": {
+      "source": "1.5",
+      "sha256": "fd37eb14dc1fad9c83b4ccd784ff63121c63f6d3129a0c785f26db215cfa0e23"
+    },
+    "public/overrides/assets/portraits/42.png": {
+      "source": "1.5",
+      "sha256": "51225d7e4dd1180d4ffe73a62fe706feae1f0716f0fb6b06b6ad39c89f79d393"
+    },
+    "public/overrides/assets/portraits/43.png": {
+      "source": "1.5",
+      "sha256": "15e129db6c459c95f0f01b9bfa21812facd1a379279e0b4228e1c195cfc84b2a"
+    },
+    "public/overrides/assets/portraits/44.png": {
+      "source": "1.5",
+      "sha256": "dbd16d8590068914fb7c6e71127d55f766199723021d94d8b5914f6a5ac18f16"
+    },
+    "public/overrides/assets/portraits/45.png": {
+      "source": "1.5",
+      "sha256": "7c3abc601028853083febb9190d17898d7692b892438584e73089b4edcf8086c"
+    },
+    "public/overrides/assets/portraits/46.png": {
+      "source": "1.5",
+      "sha256": "e58a41a94e1b6d44a744bc099c7ceb40dc2a2486dfda96de02487b310e893891"
+    },
+    "public/overrides/assets/portraits/47.png": {
+      "source": "1.5",
+      "sha256": "7681495aef047020ad54f56a70ff438e410849b6099c37eb90659dd142ff47a3"
+    },
+    "public/overrides/assets/portraits/48.png": {
+      "source": "1.5",
+      "sha256": "15dd5c2dc8839bfaeee580bd76c6877288230d7857bd01003248d536f0c91c39"
+    },
+    "public/overrides/assets/portraits/49.png": {
+      "source": "1.5",
+      "sha256": "467f3c5850b8801e12c9a1748267cd2ad461d16ac495be06740857be840272a5"
+    },
+    "public/overrides/assets/portraits/5.png": {
+      "source": "1.5",
+      "sha256": "a7d175e2bee70a1a3b4e9ff7df44e5b7ac9dbde850c2f7a34243202472af22ae"
+    },
+    "public/overrides/assets/portraits/50.png": {
+      "source": "1.5",
+      "sha256": "f84a6d727dad4358ec5e470827945912be084dfa9df5b8925cc9758fa928ea7b"
+    },
+    "public/overrides/assets/portraits/51.png": {
+      "source": "1.5",
+      "sha256": "fac939d54c230eb871420c0dcedc1d1e6d6ef8683a8756043200fe23ccbc9986"
+    },
+    "public/overrides/assets/portraits/52.png": {
+      "source": "1.5",
+      "sha256": "8f338db54aa8d7ca859d701f476d4e3036191c58a3def7ece99cef5234eed886"
+    },
+    "public/overrides/assets/portraits/53.png": {
+      "source": "1.5",
+      "sha256": "ce7bf386485b0fb247118a117abaf1cbe04394c61c40d68880411a92d9d5be52"
+    },
+    "public/overrides/assets/portraits/54.png": {
+      "source": "1.5",
+      "sha256": "68fb7c7db0a46726666b9c0dcb7363d0c3cd74b50e6258c84dc8f5bcb138de15"
+    },
+    "public/overrides/assets/portraits/55.png": {
+      "source": "1.5",
+      "sha256": "94b6bdd9dcace15f99cc843bf3e557e56b501f6805ef05d16a6f706d91e28083"
+    },
+    "public/overrides/assets/portraits/56.png": {
+      "source": "1.5",
+      "sha256": "73c4e60d427f45d5a5aea936e35eb640c8d53d370ad9356ce1c717131e7173fd"
+    },
+    "public/overrides/assets/portraits/57.png": {
+      "source": "1.5",
+      "sha256": "a19c1dd9bd484b849592cf9553a171d24e1f11794a73b4e6ebdee1e65246f00a"
+    },
+    "public/overrides/assets/portraits/58.png": {
+      "source": "1.5",
+      "sha256": "a84c8801a40fc51ac35fe01ea29e5afbca94d3514274fe1005a471d6b281a00b"
+    },
+    "public/overrides/assets/portraits/59.png": {
+      "source": "1.5",
+      "sha256": "c7261209e79ee46c391e231b83e937fe24b0adb1e711970b0f2a33c2e697f61b"
+    },
+    "public/overrides/assets/portraits/6.png": {
+      "source": "1.5",
+      "sha256": "f0e7df7a7fb0fa49a02ad675c75266ff405a0340db05e4aeea2f36e58db49f86"
+    },
+    "public/overrides/assets/portraits/60.png": {
+      "source": "1.5",
+      "sha256": "28a2818178c33f866d0f86f9d5376de5d67e2985b6d844b1405187e1d3b3fabe"
+    },
+    "public/overrides/assets/portraits/61.png": {
+      "source": "1.5",
+      "sha256": "e1176c0001d5b333ad454476770c73fa59f2dbbaf06d11c604c586d867e5b106"
+    },
+    "public/overrides/assets/portraits/62.png": {
+      "source": "1.5",
+      "sha256": "1d8877b8840a3cee89575977406998191da9e98cdc52619e5c99adcef5c255e3"
+    },
+    "public/overrides/assets/portraits/63.png": {
+      "source": "1.5",
+      "sha256": "b695cf6ab7d5edfb626789787e437a94d7fda22a098ff3c6e57825996ece1447"
+    },
+    "public/overrides/assets/portraits/64.png": {
+      "source": "1.5",
+      "sha256": "8394706dc3537b5d192983cdb8d6b3830079e0029379ed1dcb3d5f039ade967e"
+    },
+    "public/overrides/assets/portraits/65.png": {
+      "source": "1.5",
+      "sha256": "4f02d780381150519af02059f0606922c7b1a1f2e7ac457a370818cb3d0ed80c"
+    },
+    "public/overrides/assets/portraits/66.png": {
+      "source": "1.5",
+      "sha256": "758951dffe7ac043350d865f07881fd91b10fb084713b53df80388aeb30cebbe"
+    },
+    "public/overrides/assets/portraits/67.png": {
+      "source": "1.5",
+      "sha256": "571d7e7907ef0c30ae9cf249e350dd7f0ddab3e4481a2bd3cb615d40c8098f56"
+    },
+    "public/overrides/assets/portraits/68.png": {
+      "source": "1.5",
+      "sha256": "7df15a00ea76dc2643905dd074f0f686ef8978ceb38144425a549e18b6f83ba7"
+    },
+    "public/overrides/assets/portraits/69.png": {
+      "source": "1.5",
+      "sha256": "57cf42c711227c3481b811084e2a49929a6ed47af51399f1c06f79e1bfaea897"
+    },
+    "public/overrides/assets/portraits/7.png": {
+      "source": "1.5",
+      "sha256": "5383bc7097f1fdadd4e5eade0fdc3b1b6078c9952f11cd39ecdc33c4b3fac6c1"
+    },
+    "public/overrides/assets/portraits/70.png": {
+      "source": "1.5",
+      "sha256": "99c2409b61b96f8a23c0ca5854d2683a16eaccefbda599f0da960b1298208ec9"
+    },
+    "public/overrides/assets/portraits/71.png": {
+      "source": "1.5",
+      "sha256": "8bc69ef82da435d68c1a74f99144f0a13258a967ea3015e1808127636dba654c"
+    },
+    "public/overrides/assets/portraits/72.png": {
+      "source": "1.5",
+      "sha256": "e8dc82fd662db89c0dc8a99af63a62afb1cfd62ee2660708925b2ce85bc59b9d"
+    },
+    "public/overrides/assets/portraits/73.png": {
+      "source": "1.5",
+      "sha256": "a616a5f0d34601aa92ecdf6f1ebd6ef6fdac4b4f99acfd70d3faff2719bebf55"
+    },
+    "public/overrides/assets/portraits/74.png": {
+      "source": "1.5",
+      "sha256": "78d8726c2d5c59adf58bbc8fd3e74ee6cbe402484a8f77be4d12ce9e330fab41"
+    },
+    "public/overrides/assets/portraits/75.png": {
+      "source": "1.5",
+      "sha256": "038326b032248cd4fbaa33d9346310b63bbfb7523a59f75b817fd50884be1e9e"
+    },
+    "public/overrides/assets/portraits/76.png": {
+      "source": "1.5",
+      "sha256": "183a719cca9e499780dafdab38fcfca06c255b0177026e0dd94a8cf3180808ae"
+    },
+    "public/overrides/assets/portraits/77.png": {
+      "source": "1.5",
+      "sha256": "e8374183bcefcf0587d49e49210fa5aa1173a6eaa1cefaff41bc1dca7ae6de7c"
+    },
+    "public/overrides/assets/portraits/78.png": {
+      "source": "1.5",
+      "sha256": "a84c8801a40fc51ac35fe01ea29e5afbca94d3514274fe1005a471d6b281a00b"
+    },
+    "public/overrides/assets/portraits/79.png": {
+      "source": "1.5",
+      "sha256": "94b6bdd9dcace15f99cc843bf3e557e56b501f6805ef05d16a6f706d91e28083"
+    },
+    "public/overrides/assets/portraits/8.png": {
+      "source": "1.5",
+      "sha256": "4e3b5186ae6c8809126ef9f50b8672a5e1b86f5d227d3d1aa1bc60c739db8da1"
+    },
+    "public/overrides/assets/portraits/80.png": {
+      "source": "1.5",
+      "sha256": "cb23d259f612718d7897292ab0855c180831a88d305b85fa6a9bdea34043a277"
+    },
+    "public/overrides/assets/portraits/81.png": {
+      "source": "1.5",
+      "sha256": "58c88968cc704a491a932f90389204b059592ec58c8ab5f88ce10cfe1b2dd988"
+    },
+    "public/overrides/assets/portraits/82.png": {
+      "source": "1.5",
+      "sha256": "a28319a15dcba49c4bbbb00d443e9a849b44db84a39835077fa3d29d82ea855f"
+    },
+    "public/overrides/assets/portraits/83.png": {
+      "source": "1.5",
+      "sha256": "4c2d524748ba363f784d1b9e2f19f216ececa434f8443dede743e34d2dbdb353"
+    },
+    "public/overrides/assets/portraits/84.png": {
+      "source": "1.5",
+      "sha256": "a64b7ed9845ddf26b7097aba147a49b18018aa7ddc143084c69ef8ec0e7e02b9"
+    },
+    "public/overrides/assets/portraits/85.png": {
+      "source": "1.5",
+      "sha256": "d0f2155ae9960e22fcafae04d869d7677ab0b99375377dae2745cf9b487cabda"
+    },
+    "public/overrides/assets/portraits/86.png": {
+      "source": "1.5",
+      "sha256": "1d8877b8840a3cee89575977406998191da9e98cdc52619e5c99adcef5c255e3"
+    },
+    "public/overrides/assets/portraits/87.png": {
+      "source": "1.5",
+      "sha256": "b695cf6ab7d5edfb626789787e437a94d7fda22a098ff3c6e57825996ece1447"
+    },
+    "public/overrides/assets/portraits/88.png": {
+      "source": "1.5",
+      "sha256": "fcf2fce0a28ac5814f2b92492decb23b863a86466571d73e048521283b2594d9"
+    },
+    "public/overrides/assets/portraits/89.png": {
+      "source": "1.5",
+      "sha256": "01b750832476383547a5d04f73b9b181d38087581d0b2b8b3c2a6914f66861e3"
+    },
+    "public/overrides/assets/portraits/9.png": {
+      "source": "1.5",
+      "sha256": "a1db625840fd5c13fc46a69d37535e2c8f98a92327dfed2f377b23c8c123f405"
+    },
+    "public/overrides/assets/portraits/90.png": {
+      "source": "1.5",
+      "sha256": "ef9856a97f3a86f7a9cbc4540aa0916ac4448808e9d2d25d4ace496f92c6b557"
+    },
+    "public/overrides/assets/portraits/91.png": {
+      "source": "1.5",
+      "sha256": "61d095aa99216a601edd497e7b0a474e0b38952af353d037ebfb16aacee0e40b"
+    },
+    "public/overrides/assets/portraits/92.png": {
+      "source": "1.5",
+      "sha256": "f2ae94dcae881700c8e69f21891fc485e217f031152e8c2d358e27159b1d311d"
+    },
+    "public/overrides/assets/portraits/93.png": {
+      "source": "1.5",
+      "sha256": "2d835eb1b8a3ba84573b5c6a7c33014ada44504ddb47de5d02adbda77501a3ec"
+    },
+    "public/overrides/assets/portraits/94.png": {
+      "source": "1.5",
+      "sha256": "963abf3d43367b4fb6de721bf433d3d8d996c956bb9fb56adb525a4932ea7d88"
+    },
+    "public/overrides/assets/portraits/95.png": {
+      "source": "1.5",
+      "sha256": "9f120881c7767dbc1af905d1b7e6d4836d11132a1ccc803bec3f4403f772bd93"
+    },
+    "public/overrides/assets/portraits/96.png": {
+      "source": "1.5",
+      "sha256": "e8dc82fd662db89c0dc8a99af63a62afb1cfd62ee2660708925b2ce85bc59b9d"
+    },
+    "public/overrides/assets/portraits/97.png": {
+      "source": "1.5",
+      "sha256": "a616a5f0d34601aa92ecdf6f1ebd6ef6fdac4b4f99acfd70d3faff2719bebf55"
+    },
+    "public/overrides/assets/portraits/98.png": {
+      "source": "1.5",
+      "sha256": "cc8e09260564977ac759a10084c082d5e410023f30550817c3bf8c2758dc9ba2"
+    },
+    "public/overrides/assets/portraits/99.png": {
+      "source": "1.5",
+      "sha256": "79f33fb2e7460f3b5d7cf9bf54a129998d7d66b187a2d2757276ddadea2b46a0"
+    },
+    "src/customize.js": {
+      "source": "1.0.1",
+      "sha256": "06c4e0f3c46e66699c0d41b4471da690ce3f6f97b5f36d56d43b7510a5874620"
+    },
+    "src/game.js": {
+      "source": "merged",
+      "sha256": "ee5ff80a1730a3fc1b59a192200c7e8a8b5bc7a6421a08889102ae33c3fbadd6"
+    },
+    "src/lite-qa.js": {
+      "source": "1.0.1",
+      "sha256": "2b2ee376c879758c2eeeb0f91dc5c2e24574dc8d42e9ade50e95596ace907e1f"
+    },
+    "src/stationery-forest.js": {
+      "source": "1.0.1",
+      "sha256": "8eccd21ace5557f2049f24dd8274b21dcfb19a5dc6e978fd41ca8c6a9949a19c"
+    },
+    "src/stationery-landscape.js": {
+      "source": "1.0.1",
+      "sha256": "28d18158c2394aaf8df7f40bce06b3a7181f402ea0bc8bb08334a12cfd713c68"
+    },
+    "src/stationery-notebooks.js": {
+      "source": "1.0.1",
+      "sha256": "f82872747118b1b335e2409f157cb3369a87887c8c2ea5ebd955c2cde03a70f7"
+    },
+    "src/stationery-sanctuary.js": {
+      "source": "1.0.1",
+      "sha256": "9e9b00a3627ab7026a05c180fbafd179b0b144b65bf25a274ecfd1843643c804"
+    },
+    "src/stationery-terrain.js": {
+      "source": "1.0.1",
+      "sha256": "fbf89f206ff05ac19e7606fa78b627db78da12b4d1227208515a6aee3e7a81c1"
+    }
+  }
+}

@@ -1,0 +1,10 @@
+node_modules/
+source/lite-data/
+source/reports/*.json
+/project.private.config.json
+/验收/
+
+__pycache__/
+*.log
+.DS_Store
+Thumbs.db
