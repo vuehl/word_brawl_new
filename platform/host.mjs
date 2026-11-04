@@ -12,6 +12,7 @@ import {strFromU8,strToU8} from 'fflate';
 import {LocalURL,Params} from './url.mjs';
 import {createFetch,Headers,Request,Response,Blob} from './http.mjs';
 import {createLayout} from './layout.mjs';
+import {mediaMatches} from './styles.mjs';
 import {readUIAssets} from './reference.mjs';
 import {paint,compositor} from './paint.mjs';
 import {installSurfaces} from './surfaces.mjs';
@@ -106,7 +107,11 @@ export async function setup(host) {
   const loc=new LocalURL('https://ziling.local/?touch=1');
   loc.reload=()=>wx.restartMiniProgram?.({});loc.replace=value=>{const next=new LocalURL(value);const lang=next.searchParams.get('lang');if(lang)localStorage.setItem('pokebonk.lang',lang);loc.reload();};
   const history={state:null,pushState(state){this.state=state;},replaceState(state){this.state=state;},back(){win.dispatchEvent(new D.Event('popstate'));}};
-  const matchMedia=q=>Object.assign(new D.EventTarget(),{media:q,matches:/pointer:\s*coarse|hover:\s*none|orientation:\s*landscape/.test(q)});
+  const queries=new Map();
+  function matchMedia(q){
+    if(!queries.has(q))queries.set(q,Object.assign(new D.EventTarget(),{media:q,matches:mediaMatches(q,view)}));
+    return queries.get(q);
+  }
   function computed(el){return new Proxy(el.style,{get(t,k){if(k==='getPropertyValue')return key=>layout.box(el)?.s[key]||t.getPropertyValue(key)||'';
     const key=String(k).replace(/[A-Z]/g,m=>'-'+m.toLowerCase());return layout.box(el)?.s[key]||t.getPropertyValue(key)||(k==='gridTemplateColumns'?'1fr':'');}});}
   function show(hide){
@@ -129,6 +134,7 @@ export async function setup(host) {
       return {...t,identifier:t.identifier,clientX:x,clientY:y,pageX:x,pageY:y};
     };
     const all=Array.from(event.touches||[],local),changed=Array.from(event.changedTouches||event.touches||[],local);
+    const touchType='touch'+({down:'start',move:'move',up:'end',cancel:'cancel'}[kind]);
     for(const t of changed){
       const id=t.identifier??0,x=t.clientX,y=t.clientY;
       let p=pointers.get(id);
@@ -148,7 +154,11 @@ export async function setup(host) {
       p.lastY=y;
       target.dispatchEvent(new InputEvent('pointer'+kind,options));
       win.dispatchEvent(new InputEvent('pointer'+kind,{...options,bubbles:false}));
-      target.dispatchEvent(new InputEvent('touch'+({down:'start',move:'move',up:'end',cancel:'cancel'}[kind]),{touches:all,changedTouches:changed,bubbles:true}));
+      const contact={touches:all,changedTouches:[t]};
+      target.dispatchEvent(new InputEvent(touchType,{...contact,bubbles:true}));
+      // The virtual document has no parent window. Notify it before the next
+      // pointerdown, including when both thumbs land in the same native event.
+      win.dispatchEvent(new InputEvent(touchType,{...contact,bubbles:false}));
       const input=p.target.closest?.('input,textarea');
       if(input?.type==='range'&&(kind==='down'||kind==='move'))setRange(input,x);
       if(kind==='up'||kind==='cancel'){
@@ -168,7 +178,7 @@ export async function setup(host) {
   const env=Object.assign(win,{...D,document:doc,Image,HTMLVideoElement:D.HTMLVideoElement,location:loc,history,localStorage,sessionStorage:storage('ziling.session.'),
     Blob,URL:LocalURL,URLSearchParams:Params,fetch,Request,Headers,Response,AbortController,AbortSignal,TextDecoder,TextEncoder,createImageBitmap:undefined,ImageBitmap:undefined,OffscreenCanvas:undefined,
     ProgressEvent:InputEvent,MouseEvent:InputEvent,KeyboardEvent:InputEvent,PointerEvent:InputEvent,Path2D:CanvasPath,MutationObserver:doc.defaultView.MutationObserver,
-    innerWidth:view.w,innerHeight:view.h,devicePixelRatio:view.dpr,uiPixelRatio:scale,screen:{width:view.w,height:view.h,orientation:{type:'landscape-primary',lock:()=>Promise.resolve()}},
+    innerWidth:view.w,innerHeight:view.h,devicePixelRatio:view.dpr,uiPixelRatio:scale,screen:{width:view.w,height:view.h,orientation:{get type(){return view.h>=view.w?'portrait-primary':'landscape-primary';}}},
     navigator:{userAgent:'MicroMessenger MiniGame',language:'zh-CN',languages:['zh-CN'],maxTouchPoints:5,getGamepads:()=>[],onLine:true},
     AudioContext:wx.createWebAudioContext?class {constructor(){return wx.createWebAudioContext();}}:undefined,
     crypto:{getRandomValues(a){new Uint8Array(a.buffer,a.byteOffset,a.byteLength).set(random(a.byteLength));return a;}},
@@ -198,7 +208,12 @@ export async function setup(host) {
     env.innerWidth=env.screen.width=view.w;env.innerHeight=env.screen.height=view.h;
     env.devicePixelRatio=view.dpr;
     scale=env.uiPixelRatio=uiScale(view);uiCanvas.width=Math.round(view.width*scale);uiCanvas.height=Math.round(view.height*scale);
-    layout=createLayout(doc,view,uiCanvas,fonts,uiAssets);dirty=true;env.dispatchEvent(new D.Event('resize'));
+    layout=createLayout(doc,view,uiCanvas,fonts,uiAssets);dirty=true;
+    for(const query of queries.values()){
+      const matches=mediaMatches(query.media,view);
+      if(matches!==query.matches){query.matches=matches;query.dispatchEvent(new InputEvent('change',{matches,media:query.media}));}
+    }
+    env.dispatchEvent(new D.Event('resize'));
   });
   if(host.inspect)host.inspect({env,doc,get layout(){return layout;},touches,uiCanvas});
   return env;

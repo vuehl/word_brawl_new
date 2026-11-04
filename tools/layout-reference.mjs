@@ -11,7 +11,8 @@ const temp=fs.mkdtempSync(path.join(os.tmpdir(),'ziling-reference-'));
 const server=spawn(process.execPath,[path.join(src,'server.mjs')],{cwd:src,env:{...process.env,PORT:'18189',STORE_DIR:temp},windowsHide:true,stdio:['ignore','pipe','pipe']});
 const sleep=n=>new Promise(r=>setTimeout(r,n));
 const result={views:[],styles:[]},styleIds=new Map();
-const sizes=[[844,390],[667,375],[760,315],[600,280],[1024,768]];
+// Usable UI sizes after subtracting the WeChat capsule and the home indicator.
+const sizes=[[320,500],[360,620],[390,748],[430,842],[768,950],[760,315],[1024,768]];
 let browser;
 function keyPart(el){
   if(el.nodeType===3)return '#text';

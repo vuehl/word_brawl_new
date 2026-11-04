@@ -19,6 +19,7 @@ export function readUIAssets(files) {
 export function readReference(view,data) {
   const distance=v=>Math.abs(Math.log((view.w/view.h)/(v.w/v.h)))+
     .25*Math.abs(Math.log(view.w/v.w));
-  const sample=data.views.reduce((a,b)=>distance(a)<distance(b)?a:b);
+  const sameOrientation=data.views.filter(v=>(v.w<=v.h)===(view.w<=view.h));
+  const sample=(sameOrientation.length?sameOrientation:data.views).reduce((a,b)=>distance(a)<distance(b)?a:b);
   return {screens:sample.screens,styles:data.styles,sx:view.w/sample.w,sy:view.h/sample.h};
 }

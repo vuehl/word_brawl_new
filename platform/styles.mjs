@@ -25,12 +25,15 @@ export function length(value,base,view,font=16) {
   if(s.endsWith('em'))return n*font;
   return n;
 }
-function mediaMatches(query,view) {
+export function mediaMatches(query,view) {
   if(!query)return true;
   return query.split(/,\s*/).some(part=>{
     const orientation=/orientation:\s*(portrait|landscape)/.exec(part);
-    if(orientation&&(orientation[1]==='portrait')!==(view.h>view.w))return false;
-    if(/hover:\s*hover|pointer:\s*fine|prefers-reduced-motion:\s*reduce/.test(part))return false;
+    if(orientation&&(orientation[1]==='portrait')!==(view.h>=view.w))return false;
+    if(/hover:\s*hover|pointer:\s*(fine|none)|prefers-reduced-motion:\s*reduce/.test(part))return false;
+    for(const [,bound,a,b] of part.matchAll(/(min|max)-aspect-ratio:\s*(\d+)\s*\/\s*(\d+)/g)){
+      if(bound==='min'?view.w*b<view.h*a:view.w*b>view.h*a)return false;
+    }
     for(const match of part.matchAll(/(min|max)-(width|height)\s*:\s*([\d.]+)px/g)){
       const dim=match[2]==='height'?view.h:view.w;
       if(match[1]==='min'?dim<+match[3]:dim>+match[3])return false;

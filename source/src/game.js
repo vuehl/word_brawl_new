@@ -1,7 +1,7 @@
 import {gameFontsReady} from './game-font.js';
 await gameFontsReady;
 import {GlyphActors} from './glyph-actors.js';
-import {GlyphHero} from './glyph-hero.js';
+import {GlyphHero,createHeroPreview} from './glyph-hero.js';
 import {HERO_ART} from './glyph-hero-art.js';
 import {LITE_SPECIES, isLiteSpecies, isLiteFamily} from './lite-rules.js';
 import {mountLiteQA} from './lite-qa.js';
@@ -1271,9 +1271,7 @@ function Oo(e = !1) {
     let e = t.requestFullscreen
       ? t.requestFullscreen({ navigationUI: `hide` })
       : (t.webkitRequestFullscreen?.(), void 0);
-    Promise.resolve(e)
-      .then(() => ((wo = !0), screen.orientation.lock?.(`landscape`)))
-      .catch(() => {});
+    Promise.resolve(e).then(() => { wo = !!document.fullscreenElement; }).catch(() => {});
   } catch {}
 }
 async function ko() {
@@ -1314,11 +1312,7 @@ var Po = 0,
     !!(document.documentElement.requestFullscreen || document.documentElement.webkitRequestFullscreen);
 function Io() {
   document.documentElement.classList.toggle(`touch`, uo);
-  let e = document.createElement(`div`);
-  ((e.className = `rotate-hint`),
-    (e.innerHTML = `<div><img class="pix" src="${Zt(`ui/icons/rotate.png`)}" alt=""><b>${c(`Gira tu dispositivo`)}</b><span>${c(`PokéBonk se juega en horizontal`)}</span></div>`),
-    document.body.append(e),
-    Co(),
+  (Co(),
     document.addEventListener(`fullscreenchange`, () => {
       ((Po = 0), No());
     }),
@@ -1340,10 +1334,7 @@ function Io() {
       !0,
     ),
     document.addEventListener(`fullscreenchange`, () => {
-      if ((Co(), setTimeout(Co, 250), setTimeout(Co, 700), document.fullscreenElement && uo))
-        try {
-          screen.orientation.lock?.(`landscape`)?.catch(() => {});
-        } catch {}
+      Co(); setTimeout(Co, 250); setTimeout(Co, 700);
     }),
     addEventListener(`orientationchange`, () => setTimeout(Co, 120)),
     addEventListener(`resize`, Co),
@@ -5380,13 +5371,14 @@ var oc = (e, t) =>
       let e = this.canvas.clientWidth || window.innerWidth,
         t = this.canvas.clientHeight || window.innerHeight;
       if (e < 2 || t < 2) return;
-      let n = this.pixelScale > 1,
-        r = n
-          ? 1 / this.pixelScale
-          : Math.min(window.devicePixelRatio, this.quality.saver ? 1 : this.hires ? (uo ? 1.25 : 1.5) : 1);
-      (n || (r = Math.min(r, Math.max(0.5, Math.sqrt((this.hires ? (uo ? 16e5 : 37e5) : 22e5) / (e * t))))),
-        n || (r = Math.max(0.5, r * this.dynRes)),
-        (r = Math.round(r * 100) / 100));
+      const n = this.pixelScale > 1;
+      const portrait = uo && t >= e && this.hires;
+      const density = portrait ? (this.quality.saver ? 1.75 : 2) :
+        this.quality.saver ? 1 : this.hires ? (uo ? 1.25 : 1.5) : 1;
+      const budget = portrait && this.quality.saver ? 1200000 : this.hires ? (uo ? 1600000 : 3700000) : 2200000;
+      const target = Math.min(window.devicePixelRatio, density, Math.sqrt(budget / (e * t)));
+      const ratio = n ? 1 / this.pixelScale : Math.max(.5, target * this.dynRes);
+      const r = Math.round(ratio * 100) / 100;
       // Keep the world render targets at the chosen game quality. A phone can
       // present the final pass and the UI at a higher resolution for legible text.
       const displayRatio = Math.max(r, window.uiPixelRatio || r);
@@ -5647,6 +5639,11 @@ void main(){
   vFx = iFx; vTint = iTint; vFogDepth = -mv.z; vLook = iLook;
 }`,
   Yc = `
+#ifdef GLYPH_INK
+const float alphaCutoff = 0.015;
+#else
+const float alphaCutoff = 0.5;
+#endif
 uniform sampler2D map; uniform vec2 uTexel; uniform vec3 uFogColor; uniform float uFogNear; uniform float uFogFar; uniform vec3 uLight; uniform float uTime; uniform sampler2D uLookPal;
 varying vec2 vUv; varying vec4 vFx; varying vec4 vTint; varying float vFogDepth; varying vec4 vRect; varying vec2 vLocal; varying vec2 vLook;
 float hash(vec2 p){ return fract(sin(dot(p, vec2(12.9898,78.233)))*43758.5453); }
@@ -5719,7 +5716,7 @@ void main(){
   // Looks that draw an outline (shadow 6, neon 8, ink 10, flame 11): it replaces the code's one.
   float lk = vLook.x;
   bool lookOut = lk > 5.5 && (lk < 6.5 || (lk > 7.5 && lk < 8.5) || (lk > 9.5 && lk < 11.5));
-  if (a < 0.5) {
+  if (a < alphaCutoff) {
     if (lookOut) {
       float n = max(max(alphaAt(vUv+vec2(uTexel.x,0.)), alphaAt(vUv-vec2(uTexel.x,0.))), max(alphaAt(vUv+vec2(0.,uTexel.y)), alphaAt(vUv-vec2(0.,uTexel.y))));
       if (n < 0.5) discard;
@@ -5761,7 +5758,11 @@ void main(){
   col = mix(col, vec3(1.), vFx.x);
   float fog = smoothstep(uFogNear, uFogFar, vFogDepth);
   col = mix(col, uFogColor, fog);
+#ifdef GLYPH_INK
+  gl_FragColor = vec4(col, smoothstep(alphaCutoff, 0.95, a));
+#else
   gl_FragColor = vec4(col, 1.);
+#endif
 }`;
 function Xc(e) {
   return 0.22 + ((e * 0.618034) % 1) * 0.56;
@@ -71179,6 +71180,7 @@ function GC(e, t, n = e) {
   return r;
 }
 function KC(e, t, n = 3, r = `idle`, i = e) {
+  if (!t && HERO_ART[e] && r === 'idle') return iw(e,n,r);
   let a = document.createElement(`canvas`);
   a.className = `pix`;
   let o = k.sprites[e],
@@ -71429,16 +71431,14 @@ function rw(e) {
   );
 }
 function iw(e, t = 3, n = `idle`) {
-  let r = X(`canvas`, { class: `pix` }),
-    i = k.sprites[e],
-    a = null;
-  Tc(i?.anims ? Zt(`pmd/${e}.png`) : Zt(i?.fallback ?? `front/${e}.png`), (e) => {
-    a = e;
-  });
+  let i = k.sprites[e], a = null;
   let o = i?.anims ? (i.anims[n] ?? i.anims.walk) : null,
     s = o ? o.fw : 96,
     c = o ? o.fh : 96,
     l = o ? t : t * 0.6;
+  if (HERO_ART[e] && n === 'idle') return createHeroPreview(e,s*l,c*l);
+  let r = X(`canvas`, { class: `pix` });
+  Tc(i?.anims ? Zt(`pmd/${e}.png`) : Zt(i?.fallback ?? `front/${e}.png`), img => { a = img; });
   ((r.width = s * l), (r.height = c * l));
   let u = r.getContext(`2d`);
   u.imageSmoothingEnabled = !1;
@@ -94088,7 +94088,7 @@ function rP(e, t, n = !0) {
       e,
       `mm auth`,
       X(`div`, { class: `mm-top` }, xk()),
-      X(`div`, { class: `auth-hero` }, zN(`hero`)),
+      X('div', { class: 'auth-hero' }, X('h1',{class:'forest-title'},'字灵 · 拆字冒险')),
       X(`div`, { class: `auth-side` }, t),
       X(`div`, { class: `mm-foot` }, n ? ZN() : null, nP()),
     )
@@ -103942,8 +103942,18 @@ var JI = class {
     fitTop() {
       let e = this.els,
         t = XI(e),
-        n = this.hudEl.getBoundingClientRect(),
-        r = YI(e).getBoundingClientRect(),
+        n = this.hudEl.getBoundingClientRect();
+      // The portrait HUD has a separate row below the player badge.
+      if (uo && innerHeight >= innerWidth) {
+        t.classList.remove('compact', 'slim');
+        t.style.left = t.style.transform = '';
+        const style = this.hudEl.style;
+        style.setProperty('--hc', '50%');
+        style.setProperty('--hw', '94%');
+        style.setProperty('--hb', Math.round(t.getBoundingClientRect().bottom - n.top + 6) + 'px');
+        return;
+      }
+      let r = YI(e).getBoundingClientRect(),
         i = (this.minimap.offsetWidth ? this.minimap : e.kills.parentElement).getBoundingClientRect();
       if (!r.width || !i.width || !n.width) return;
       let a = r.right + 12 - n.left,
@@ -109719,9 +109729,6 @@ var TL = () => d(Date.now()).some((e) => e.id === `halloween26`),
         ),
         document.addEventListener(`visibilitychange`, () => {
           document.hidden && uo && this.run?.state === `play` && this.run.pause();
-        }),
-        matchMedia(`(orientation: portrait)`).addEventListener(`change`, (e) => {
-          e.matches && uo && this.run?.state === `play` && this.run.pause();
         }),
         addEventListener(`keydown`, (e) => {
           e.code === `F11` && this.run && !e.repeat && !uo && (e.preventDefault(), ko());

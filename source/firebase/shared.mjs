@@ -26,7 +26,7 @@ export function newProfile(name) {
   return {
     v: 1, name, created: now(), stardust: 0, totalStardust: 0,
     unlocked: [], league: [], starter: 0, forms: [], research: {}, captured: {},
-    seen: [], played: [], shinies: [], skins: [], lab: {}, biomes: { forest: 0 },
+    seen: [], played: [], shinies: [], lab: {}, biomes: { forest: 0 },
     quests: {}, counters: {}, runs: [], best: {}, times: {}, kills: {}, medals: {},
     endless: {}, settings: { ...DEFAULT_SETTINGS }, lastSpecies: 4,
     lastBiome: 'forest', banished: [], itemsOwned: [], itemsOff: [],

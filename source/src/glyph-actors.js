@@ -1,4 +1,4 @@
-import { B as Attribute, H as InstancedMesh, ct as ShaderMaterial, et as PlaneGeometry, ft as TextureLoader, j as DynamicDrawUsage, Y as NearestFilter, ot as SRGBColorSpace, mt as Vector2 } from '../assets/three-DmSYIDKK.js';
+import { B as Attribute, H as InstancedMesh, ct as ShaderMaterial, et as PlaneGeometry, ft as TextureLoader, j as DynamicDrawUsage, ot as SRGBColorSpace, mt as Vector2 } from '../assets/three-DmSYIDKK.js';
 import { GLYPHS } from './glyph-catalog.js';
 import { GLYPH_ART, ATLAS_SIZE } from './glyph-art-data.js';
 import { clamp, movementFor, samplePose } from './glyph-motion.js';
@@ -19,8 +19,6 @@ export class GlyphActors {
       this.ready = true;
     });
     this.texture.colorSpace = SRGBColorSpace;
-    this.texture.magFilter = this.texture.minFilter = NearestFilter;
-    this.texture.generateMipmaps = false;
     const geo = new PlaneGeometry(1, 1, 1, 8);
     this.attributes = {};
     for (const [name, size] of [['iPosition', 3], ['iShape', 4], ['iRegion', 4], ['iFx', 4], ['iTint', 4]]) {
@@ -29,6 +27,7 @@ export class GlyphActors {
     }
     const shared = run.r.shared;
     this.material = new ShaderMaterial({
+      defines: { GLYPH_INK: 1 },
       uniforms: { map: { value: this.texture }, uTexel: {value: new Vector2(1 / ATLAS_SIZE, 1 / ATLAS_SIZE)}, uLean: {value: .35},
         uLookPal: shaders.lookPal, uLight: shared.uLight, uTime: shared.uTime,
         uFogColor: shared.uFogColor, uFogNear: shared.uFogNear, uFogFar: shared.uFogFar },
@@ -49,7 +48,7 @@ export class GlyphActors {
         }`,
       // Reuse the game's actual lighting, color conversion, status tint and
       // elite/capture outlines, instead of inventing a different text palette.
-      fragmentShader: shaders.fragmentShader,
+      fragmentShader: shaders.fragmentShader, transparent: true,
     });
     this.mesh = new InstancedMesh(geo, this.material, CAPACITY);
     this.mesh.name = '字灵 · 完整字形与规范减字'; this.mesh.frustumCulled = false; this.mesh.count = 0;

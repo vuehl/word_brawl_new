@@ -74,8 +74,8 @@ async function start() {
     stage('字灵 · 打开森林');
     const canvas = wx.createCanvas();
     const view = wx.getWindowInfo ? wx.getWindowInfo() : wx.getSystemInfoSync();
-    canvas.width = Math.max(1, Math.round(view.windowWidth || canvas.width || 640));
-    canvas.height = Math.max(1, Math.round(view.windowHeight || canvas.height || 360));
+    canvas.width = Math.max(1, Math.round(view.windowWidth || canvas.width || 360));
+    canvas.height = Math.max(1, Math.round(view.windowHeight || canvas.height || 640));
     let gl;
     try { gl = canvas.getContext('webgl2', {alpha:true, antialias:false, depth:true, stencil:false}); }
     catch (error) { console.warn('[字灵启动] 尝试默认 WebGL 2 参数', error); }

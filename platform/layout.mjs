@@ -50,7 +50,10 @@ export function createLayout(doc,view,native,fonts,uiAssets) {
       node.setPadding(edge,Math.max(0,dim(p)||0));
       if(m==='auto')node.setMarginAuto(edge);else node.setMargin(edge,dim(m)||0);
       if(s['border-'+name]||s.border)node.setBorder(edge,parseFloat(s['border-'+name]||s.border)||0);
-      if(pos!=='auto'){if(pos.endsWith('%'))node.setPositionPercent(edge,parseFloat(pos));else if(Number.isFinite(dim(pos,base)))node.setPosition(edge,dim(pos,base));}
+      if(pos!=='auto'&&(abs||s.position==='relative'||s.position==='sticky')){
+        if(pos.endsWith('%'))node.setPositionPercent(edge,parseFloat(pos));
+        else if(Number.isFinite(dim(pos,base)))node.setPosition(edge,dim(pos,base));
+      }
     }
     if(s.flex&&s.flex!=='none'&&s.flex!=='auto'){const f=s.flex.split(' ');node.setFlexGrow(parseFloat(f[0])||0);node.setFlexShrink(f[1]===undefined?1:parseFloat(f[1])||0);set('FlexBasis',f[2]||'0%');}
     else node.setFlexShrink(s['flex-shrink']===undefined?(s.flex==='none'||parent&&scrolls(parent.s)?0:1):+s['flex-shrink']);
@@ -124,8 +127,10 @@ export function createLayout(doc,view,native,fonts,uiAssets) {
       const inset=four(s.inset||'auto'),off=(side,i,size)=>length(s[side]??inset[i],size,view,s.font);
       const l=off('left',3,pw),r=off('right',1,pw),t=off('top',0,ph),bt=off('bottom',2,ph);
       const ox=fixed?0:left,oy=fixed?0:top;
-      if(Number.isFinite(l))x=ox+l;else if(Number.isFinite(r))x=ox+pw-r-w;
-      if(Number.isFinite(t))y=oy+t;else if(Number.isFinite(bt))y=oy+ph-bt-h;
+      if(Number.isFinite(l))x=ox+l+node.getComputedMargin(Y.EDGE_LEFT);
+      else if(Number.isFinite(r))x=ox+pw-r-w-node.getComputedMargin(Y.EDGE_RIGHT);
+      if(Number.isFinite(t))y=oy+t+node.getComputedMargin(Y.EDGE_TOP);
+      else if(Number.isFinite(bt))y=oy+ph-bt-h-node.getComputedMargin(Y.EDGE_BOTTOM);
     }
     if(s.translate&&s.translate!=='none'){const [tx,ty='0']=s.translate.split(/\s+/);x+=length(tx,w,view)||0;y+=length(ty,h,view)||0;}
     const tr=/translate\(\s*([^, )]+)[, ]+\s*([^ )]+)\)/.exec(tf);

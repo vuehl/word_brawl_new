@@ -66,8 +66,11 @@ Object.defineProperty(GameGlobal,'ziling',{get(){return window.__host;},set(host
 globalThis.wx={
   env:{USER_DATA_PATH:'/userdata'},getFileSystemManager:()=>fs,
   getWindowInfo:()=>({windowWidth:innerWidth,windowHeight:innerHeight,pixelRatio:devicePixelRatio,
-    safeArea:window.phoneLayout?{left:28,top:6,right:innerWidth-16,bottom:innerHeight-8}:undefined}),
-  getMenuButtonBoundingClientRect:()=>window.phoneLayout?{left:innerWidth-106,right:innerWidth-16,top:4,bottom:32}:undefined,
+    safeArea:!window.phoneLayout?undefined:innerHeight>=innerWidth
+      ?{left:0,top:36,right:innerWidth,bottom:innerHeight-34}
+      :{left:28,top:6,right:innerWidth-16,bottom:innerHeight-8}}),
+  getMenuButtonBoundingClientRect:()=>!window.phoneLayout?undefined:
+    {left:innerWidth-106,right:innerWidth-16,top:innerHeight>=innerWidth?28:4,bottom:innerHeight>=innerWidth?60:32},
   onWindowResize:fn=>window.addEventListener('resize',fn),
   getRandomValues({length,success}){success({randomValues:crypto.getRandomValues(new Uint8Array(length)).buffer});},
   createCanvas:canvas,createOffscreenCanvas:nativeCanvas,
@@ -102,6 +105,11 @@ globalThis.wx={
 for(const [key,event] of Object.entries({TouchStart:'touchstart',TouchEnd:'touchend',TouchMove:'touchmove',TouchCancel:'touchcancel',Hide:'pagehide',Show:'pageshow'})){
   wx['on'+key]=fn=>{events[key]=fn;if(event.startsWith('touch'))document.addEventListener(event,fn,{passive:false});};
 }
+const fingers=new Map();
 window.tap=(x,y,kind='tap',id=1)=>{const t={identifier:id,clientX:x,clientY:y,pageX:x,pageY:y};
-  const send=k=>events[k]?.({touches:k==='TouchEnd'?[]:[t],changedTouches:[t]});
-  if(kind==='tap'||kind==='down')send('TouchStart');if(kind==='move')send('TouchMove');if(kind==='tap'||kind==='up')send('TouchEnd');};
+  const send=k=>{
+    if(k==='TouchEnd'||k==='TouchCancel')fingers.delete(id);else fingers.set(id,t);
+    events[k]?.({touches:[...fingers.values()],changedTouches:[t]});
+  };
+  if(kind==='tap'||kind==='down')send('TouchStart');if(kind==='move')send('TouchMove');
+  if(kind==='tap'||kind==='up')send('TouchEnd');if(kind==='cancel')send('TouchCancel');};

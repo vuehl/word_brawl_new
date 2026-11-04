@@ -37,6 +37,47 @@ function weight(b,x,y){
   return smooth((x-l)/s)*smooth((r-x)/s)*smooth((y-d)/s)*smooth((t-y)/s);
 }
 
+function drawInk(ctx,points,at,color){
+  ctx.beginPath();
+  for(let i=0;i<points.length;i++){
+    const type=points[i][0]&7;
+    if(type===0)ctx.moveTo(...at(i));
+    else if(type===1)ctx.lineTo(...at(i));
+    else if(type===3){ctx.bezierCurveTo(...at(i),...at(i+1),...at(i+2));i+=2;}
+    if(points[i][0]&128)ctx.closePath();
+  }
+  // A paper rim separates the ink from both dark trees and bright terrain.
+  ctx.lineJoin='round';ctx.lineCap='round';
+  ctx.lineWidth=24;ctx.strokeStyle='#fff4cf';ctx.stroke();
+  ctx.lineWidth=12.5;ctx.strokeStyle='#121d22';ctx.stroke();
+  ctx.fillStyle=color;ctx.fill();
+}
+
+// The same outlines as the battlefield, available before the art pack arrives.
+export function createHeroPreview(id,width,height){
+  const ink=document.createElement('canvas'),canvas=document.createElement('canvas');
+  const pixels=Math.min(512,Math.max(128,Math.ceil(Math.max(width,height)*(window.devicePixelRatio||1))));
+  canvas.width=canvas.height=ink.width=ink.height=pixels;
+  canvas.style.width=width+'px';canvas.style.height=height+'px';
+  canvas.style.imageRendering='auto';
+  const points=HERO_PATHS[id].points,ctx=ink.getContext('2d');
+  ctx.scale(pixels/512,pixels/512);
+  drawInk(ctx,points,i=>[56+points[i][1]*400,456-points[i][2]*400],HERO_ART[id].color);
+  const output=canvas.getContext('2d');
+  let last=-Infinity;
+  function draw(now){
+    if(now-last<65)return;
+    last=now;
+    const breathe=Math.sin(now*.003)*.022;
+    output.clearRect(0,0,pixels,pixels);
+    output.drawImage(ink,0,-pixels*breathe,pixels,pixels*(1+breathe));
+  }
+  draw(0);
+  function tick(now){if(canvas.isConnected){draw(now);requestAnimationFrame(tick);}}
+  requestAnimationFrame(tick);
+  return canvas;
+}
+
 export class GlyphHero {
   constructor(run,shaders){
     this.run=run;this.ready=false;this.disposed=false;this.species=0;
@@ -51,7 +92,7 @@ export class GlyphHero {
     // Three's default linear magnification and trilinear mip filtering preserve
     // the antialiased 400px font outlines at both close and distant views.
     const s=run.r.shared;
-    this.material=new ShaderMaterial({uniforms:{
+    this.material=new ShaderMaterial({defines:{GLYPH_INK:1},uniforms:{
       map:{value:this.texture},uTexel:{value:new Vector2(1/512,1/512)},
       uPos:{value:new Float32Array(3)},uSize:{value:new Float32Array(2)},
       uRegion:{value:new Float32Array(4)},uFx:{value:new Float32Array(4)},
@@ -69,11 +110,7 @@ export class GlyphHero {
         mv.z+=.25+uSize.y*.05;gl_Position=projectionMatrix*mv;
         vUv=mix(uRegion.xy,uRegion.zw,uv);vRect=uRegion;vLocal=uv;
         vFx=uFx;vTint=uTint;vLook=uLook;vFogDepth=-mv.z;
-      }`,fragmentShader:shaders.fragmentShader
-        // Retain the game's colors, fog, lighting and skin recipes; only the
-        // alpha edge changes from a hard pixel cutout to a smooth font edge.
-        .replace('if (a < 0.5) {','if (a < 0.015) {')
-        .replace('gl_FragColor = vec4(col, 1.);','gl_FragColor = vec4(col, smoothstep(0.015, 0.95, a));')});
+      }`,fragmentShader:shaders.fragmentShader});
     this.mesh=new InstancedMesh(this.geometry,this.material,1);
     this.mesh.name='字灵 · 高清主角笔画动作';this.mesh.frustumCulled=false;
     this.mesh.renderOrder=1;this.mesh.visible=false;run.r.scene.add(this.mesh);
@@ -192,16 +229,7 @@ export class GlyphHero {
     if(key!==this.drawKey){
       this.drawKey=key;const ctx=this.ctx,points=this.path.points;
       const at=i=>{const [,x,y]=points[i],[px,py]=this.deform(x,y,pose,this.contours[i]);return [(px+.5)*400+56,512-(py*400+56)];};
-      ctx.clearRect(0,0,512,512);ctx.beginPath();
-      for(let i=0;i<points.length;i++){
-        const type=points[i][0]&7;
-        if(type===0)ctx.moveTo(...at(i));
-        else if(type===1)ctx.lineTo(...at(i));
-        else if(type===3){ctx.bezierCurveTo(...at(i),...at(i+1),...at(i+2));i+=2;}
-        if(points[i][0]&128)ctx.closePath();
-      }
-      ctx.lineWidth=12.5;ctx.lineJoin='round';ctx.lineCap='round';
-      ctx.strokeStyle='#121d22';ctx.stroke();ctx.fillStyle=this.art.color;ctx.fill();
+      ctx.clearRect(0,0,512,512);drawInk(ctx,points,at,this.art.color);
       this.texture.needsUpdate=true;
     }
     this.mesh.visible=true;

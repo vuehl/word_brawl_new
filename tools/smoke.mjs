@@ -11,7 +11,9 @@ const chrome=process.env.CHROME_PATH||'C:/Program Files/Google/Chrome/Applicatio
 const dir=process.env.ZILING_QA||path.join(os.tmpdir(),'ziling-native-check');fs.mkdirSync(dir,{recursive:true});
 const fixture=(await build({bundle:true,entryPoints:[path.join(import.meta.dirname,'wx-fixture.mjs')],write:false,format:'iife'})).outputFiles[0].text;
 // On the phone the main CommonJS loader cannot see modules inside a subpackage.
-const subpackages=JSON.parse(fs.readFileSync(path.join(game,'game.json'),'utf8')).subpackages || [];
+const config=JSON.parse(fs.readFileSync(path.join(game,'game.json'),'utf8'));
+assert.equal(config.deviceOrientation,'portrait');
+const subpackages=config.subpackages || [];
 const modules=[], packageData={main:[]};
 const packageEntries={};
 for(const pkg of subpackages)packageData[pkg.name]=[];
@@ -43,7 +45,7 @@ page.on('console',async m=>{if(m.type()==='error'||m.type()==='warn'){const msg=
   console.log(m.type(),msg.slice(0,600));if(m.type()==='error')for(const arg of m.args())try{const stack=await arg.evaluate(a=>a?.stack);if(stack)console.log(stack.slice(0,1400));}catch{}
   if(m.type()==='error'&&!msg.includes('404 (Not Found)'))errors.push(msg);}}});
 page.on('pageerror',e=>{console.error(e.stack);errors.push(e.message);});
-await page.setViewport({width:844,height:390,deviceScaleFactor:1});
+await page.setViewport({width:390,height:844,deviceScaleFactor:1});
 // The phone runtime may omit internationalization and browser/Node Base64 globals.
 await page.evaluateOnNewDocument(()=>{
   for(const name of ['Intl','atob','btoa','Buffer'])delete window[name];
@@ -173,11 +175,19 @@ async function verifyStartup(){
           b.x+b.w<=b.clip.r+1&&b.y+b.h<=b.clip.b+1;
       });
     },{timeout:10000},selector,expected);}
-    catch(error){throw Error('Not fully visible: '+selector+' ('+expected+' expected)',{cause:error});}
+    catch(error){
+      const boxes=await page.evaluate(sel=>[...inspected.doc.querySelectorAll(sel)].map(el=>{
+        const b=inspected.layout.box(el);
+        return b&&[b.x,b.y,b.w,b.h,b.clip];
+      }),selector);
+      await page.screenshot({path:path.join(dir,'layout-failure.png')});
+      throw Error('Not fully visible: '+selector+' ('+expected+' expected) '+JSON.stringify(boxes),{cause:error});
+    }
   }
   async function resize(width,height){
     await page.setViewport({width,height,deviceScaleFactor:2});
-    await page.waitForFunction((w,h)=>inspected.env.innerWidth===w-44&&inspected.env.innerHeight===h-44,
+    await page.waitForFunction((w,h)=>inspected.env.innerWidth===(w<=h?w:w-44)&&
+      inspected.env.innerHeight===(w<=h?h-98:h-44)&&inspected.env.matchMedia('(orientation: portrait)').matches===(w<=h),
       {timeout:5000},width,height);
   }
   async function tap(selector,match){
@@ -200,19 +210,25 @@ async function verifyStartup(){
   if(phoneLayout){await shown('.auth-body button');await shown('.auth-note');}
   await tap('.auth-body button');
   if(phoneLayout){
-    await resize(812,360);
+    await resize(375,720);
     await shown('.sp-card',3);await shown('.sp-pas span',3);await shown('.sp-move',3);await shown('.sp-go');
     const previews=await page.evaluate(()=>[...inspected.doc.querySelectorAll('.sp-show canvas')].map(canvas=>
       canvas.getContext('2d').getImageData(0,0,canvas.width,canvas.height).data.some((v,i)=>i%4===3&&v>0)));
     assert.deepEqual(previews,[true,true,true],'All partners have a visible glyph while artwork is downloading');
     await page.evaluate(()=>window.releaseOptionalDownloads());
     await page.screenshot({path:path.join(dir,'01-partners.png')});
+    // Choose a different card on a short phone, then switch back for the run.
+    await resize(320,568);
+    await tap('.sp-card:nth-child(3)');
+    assert.ok(await page.evaluate(()=>inspected.doc.querySelector('.sp-card:nth-child(3)').classList.contains('on')));
+    await tap('.sp-card:nth-child(2)');
+    await shown('.sp-go');
   }
   await tap('.sp-go');
   await page.waitForFunction(()=>inspected.doc.querySelector('.lite-home'),{timeout:16000});
   await sleep(1000);await page.screenshot({path:path.join(dir,'02-home.png')});
   if(phoneLayout){
-    for(const [w,h] of [[667,320],[1024,768],[812,360]]){
+    for(const [w,h] of [[320,568],[430,932],[768,1024],[812,360],[390,844]]){
       await resize(w,h);
       await shown('.lite-mon',3);await shown('.lite-actions button',3);await shown('.lite-save');
     }
@@ -253,10 +269,13 @@ async function verifyStartup(){
       const controls=['.tc-pause','.tc-aim','.tc-ultb','.tc-jump','.tc-dash','.tc-lock','.minimap'].map(sel=>inspected.doc.querySelector(sel).getBoundingClientRect());
       return controls.every((a,i)=>controls.slice(i+1).every(b=>a.right<=b.left||b.right<=a.left||a.bottom<=b.top||b.bottom<=a.top));
     });
-    assert.ok(controlsClear,'Combat buttons overlap on the short landscape viewport');
+    assert.ok(controlsClear,'Portrait combat buttons overlap');
     assert.equal(await page.evaluate(()=>app.hud.els.biome.textContent),'青翠森林');
-    assert.ok(await page.evaluate(()=>app.r.canvas.width>=inspected.uiCanvas.width-1&&
-      app.r.composer.inputBuffer.width<app.r.canvas.width),'UI is presented above the world render resolution');
+    const render=await page.evaluate(()=>({world:app.r.composer.inputBuffer.width,screen:app.r.canvas.width,
+      ui:inspected.uiCanvas.width,width:app.r.canvas.clientWidth,dynamic:app.r.dynRes}));
+    assert.ok(render.screen>=render.ui-1&&render.world>=render.width*1.6*render.dynamic-2,
+      'Character strokes should be sampled above logical phone resolution: '+JSON.stringify(render));
+    console.log('Portrait render buffers',render);
     const start=await page.evaluate(()=>{
       const screen=inspected.doc.getElementById('game').getBoundingClientRect();
       const x=inspected.env.innerWidth*.2-screen.left,y=inspected.env.innerHeight*.65-screen.top;
@@ -264,7 +283,29 @@ async function verifyStartup(){
       return {x,y,px:app.run.player.pos.x,pz:app.run.player.pos.z};
     });
     await page.waitForFunction(({px,pz})=>Math.hypot(app.run.player.pos.x-px,app.run.player.pos.z-pz)>.2,{timeout:7000},start);
+    const stickOffset=await page.evaluate(({x,y})=>{
+      const b=inspected.doc.querySelector('.tc-stick').getBoundingClientRect();
+      const screen=inspected.doc.getElementById('game').getBoundingClientRect();
+      return Math.hypot(b.x+b.width/2-x-screen.x,b.y+b.height/2-y-screen.y);
+    },start);
+    assert.ok(stickOffset<5,'The moving stick is drawn away from the thumb: '+stickOffset);
+    const multi=await page.evaluate(({x,y})=>{
+      const sx=inspected.env.innerWidth*.72;
+      window.tap(sx,y,'down',2);window.tap(sx+18,y,'move',2);window.tap(sx+18,y,'up',2);
+      return Math.hypot(app.run.input.stickX,app.run.input.stickY);
+    },start);
+    assert.ok(multi>.1,'A right-thumb camera drag released the left movement stick');
     await page.evaluate(({x,y})=>window.tap(x+38,y,'up'),start);
+    const simultaneous=await page.evaluate(({x,y})=>{
+      const left={identifier:3,clientX:x,clientY:y},right={identifier:4,clientX:x+190,clientY:y};
+      inspected.touches('down',{touches:[left,right],changedTouches:[left,right]});
+      const moved={...left,clientX:x+30};
+      inspected.touches('move',{touches:[moved,right],changedTouches:[moved]});
+      const speed=Math.hypot(app.run.input.stickX,app.run.input.stickY);
+      inspected.touches('cancel',{touches:[],changedTouches:[moved,right]});
+      return [speed,app.run.input.stickX,app.run.input.stickY];
+    },start);
+    assert.ok(simultaneous[0]>.1&&simultaneous[1]===0&&simultaneous[2]===0,'Simultaneous touches and cancellation');
     await tap('.tc-pause');
     await page.waitForFunction(()=>app.run.state==='paused');
     await page.screenshot({path:path.join(dir,'04-pause.png')});
@@ -279,6 +320,27 @@ async function verifyStartup(){
     await tap('.modal .card');await page.waitForFunction(()=>app.run.state==='play');
   }
   console.log('forest',await page.evaluate(()=>({stage:app.run.stage,state:app.run.state,hero:app.run.player.speciesId,boxes:inspected.doc.body.textContent.slice(-350),time:app.run.time})));
+  if(phoneLayout){
+    const runs=await page.evaluate(()=>app.meta.profile.counters.runs||0);
+    await resize(320,568);
+    await tap('.tc-pause');
+    await tap('.pz .sm-foot .btn.red');
+    await tap('.pz .sm-foot .btn.armed');
+    await shown('.sm-modal .sm-foot button',2);
+    const scrolled=await page.evaluate(()=>{
+      const list=inspected.doc.querySelector('.sm-modal .sm-body'),b=list.getBoundingClientRect(),
+        screen=inspected.doc.getElementById('game').getBoundingClientRect();
+      const x=b.left+b.width/2-screen.left,y=b.top+b.height*.8-screen.top;
+      window.tap(x,y,'down');window.tap(x,y-56,'move');window.tap(x,y-56,'up');
+      return list.scrollTop;
+    });
+    assert.ok(scrolled>20,'Short-phone results must scroll independently of the menu buttons');
+    await page.screenshot({path:path.join(dir,'06-result.png')});
+    await tap('.sm-modal .sm-foot button:first-child');
+    await page.waitForFunction(()=>inspected.doc.querySelector('.lite-home')&&!app.run);
+    assert.equal(await page.evaluate(()=>app.meta.profile.counters.runs),runs+1);
+    console.log('Short-phone settlement returned to the home screen with the run saved');
+  }
   const missing=await page.evaluate(()=>[...missingAssets]);if(missing.length)throw Error('Missing local assets: '+missing.join(', '));
   if(errors.length)throw Error(errors[0]);
   if(!homePainted)throw Error('Game entered the forest without completing the startup handoff');
