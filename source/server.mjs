@@ -358,14 +358,13 @@ route('POST', '/runs', async (req, res) => {
   const acc = requireAccount(req, res);
   if (!acc) return;
   const b = await body(req) || {};
-  if(!validLiteRun(b))return json(res,400,{error:'Forest Lite supports three partners, forest, and single-player classic mode only.'});
+  if(!validLiteRun(b))return json(res,400,{error:'请选择森林、可用伙伴与有效的合作房间。'});
   const id = `run-${store.nextRun++}`;
   // Co-op: the seed belongs to the party so every member builds the same world.
   let seed;
   if (b.party) {
-    const key = String(b.party);
-    if (store.coopParties[key] === undefined) store.coopParties[key] = crypto.randomInt(1, 2 ** 31);
-    seed = store.coopParties[key];
+    // Each phone keeps its own save, so the relay supplies one shared seed.
+    seed = b.coopSeed;
   } else {
     seed = b.seed ?? crypto.randomInt(1, 2 ** 31);
   }
@@ -400,6 +399,8 @@ route('POST', '/runs/:id/finish', async (req, res, url, params) => {
   if (!run || run.account !== acc.id) return json(res,404,{error:'Run not found.'});
   if(run.response)return json(res,200,{...run.response,profile:p});
   if(!validLiteRun(result) || result.species!==run.cfg.species || result.biome!==run.cfg.biome || (result.tier??0)!==(run.cfg.tier??0))return json(res,400,{error:'Result does not match this forest run.'});
+  if(run.cfg.party ? result.coop?.party!==run.cfg.party || !Number.isInteger(result.coop?.size) || result.coop.size<2 || result.coop.size>4 || !Array.isArray(result.coop.members) : !!result.coop)
+    return json(res,400,{error:'Result does not match this cooperative party.'});
   run.finished=now();
   const recordKey=result.biome+'-'+(result.tier??0);
   const prevKills=p.kills[recordKey]??null;
@@ -417,6 +418,7 @@ route('POST', '/runs/:id/finish', async (req, res, url, params) => {
 
   run.response = {
     record: entry,
+    ...(run.cfg.party ? {coop:result.coop} : {}),
     ranked: false,
     guest: !!acc.guest,
     review: false,

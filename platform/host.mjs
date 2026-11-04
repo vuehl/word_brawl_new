@@ -19,6 +19,8 @@ import {CanvasPath} from './path.mjs';
 import {cloneData} from './clone.mjs';
 import {initCrypto,random} from './crypto.mjs';
 import {dispatchApi} from 'ziling:api';
+import {wechatSocket} from './socket.mjs';
+import {installInvites} from './invites.mjs';
 
 class InputEvent extends D.Event {
   constructor(type,options={}){super(type,{bubbles:options.bubbles!==false,cancelable:true});Object.assign(this,options);}
@@ -50,7 +52,7 @@ function viewport(info) {
   }catch{} // Some runtimes do not expose a capsule rectangle.
   return {w:right-left,h:bottom-top,x:left,y:top,width,height,dpr:info.pixelRatio||1};
 }
-const uiScale=view=>Math.min(view.dpr,2,Math.sqrt(2000000/(view.width*view.height)));
+const uiScale=view=>Math.min(view.dpr,3,Math.sqrt(3500000/(view.width*view.height)));
 export async function setup(host) {
   await initCrypto();
   const {document:doc}=D.parseHTML('<!doctype html><html><head></head><body><canvas id="game"></canvas><div id="ui"></div></body></html>');
@@ -111,7 +113,11 @@ export async function setup(host) {
     const key=String(k).replace(/[A-Z]/g,m=>'-'+m.toLowerCase());return layout.box(el)?.s[key]||t.getPropertyValue(key)||(k==='gridTemplateColumns'?'1fr':'');}});}
   function show(hide){
     doc.hidden=hide;doc.visibilityState=hide?'hidden':'visible';doc.dispatchEvent(new D.Event('visibilitychange'));win.dispatchEvent(new D.Event(hide?'pagehide':'pageshow'));
-    if(hide){for(const [id,p] of pointers)p.target.dispatchEvent(new InputEvent('pointercancel',{pointerId:id,pointerType:'touch'}));pointers.clear();captured.clear();}dirty=true;
+    if(hide){
+      for(const [id,p] of pointers)(captured.get(id)||p.target).dispatchEvent(new InputEvent('pointercancel',{pointerId:id,pointerType:'touch'}));
+      pointers.clear();captured.clear();
+      win.dispatchEvent(new InputEvent('touchcancel',{touches:[],changedTouches:[],bubbles:false}));
+    }dirty=true;
   }
   wx.onHide(()=>show(true));wx.onShow(()=>show(false));
   function keyboard(el){
@@ -125,12 +131,13 @@ export async function setup(host) {
   function touches(kind,event){
     dirty=true;
     const local=t=>{
-      const x=(t.clientX??t.pageX)-view.x,y=(t.clientY??t.pageY)-view.y;
+      const x=(t.clientX??t.pageX??t.screenX)-view.x,y=(t.clientY??t.pageY??t.screenY)-view.y;
       return {...t,identifier:t.identifier,clientX:x,clientY:y,pageX:x,pageY:y};
     };
     const all=Array.from(event.touches||[],local),changed=Array.from(event.changedTouches||event.touches||[],local);
     for(const t of changed){
       const id=t.identifier??0,x=t.clientX,y=t.clientY;
+      if(!Number.isFinite(x)||!Number.isFinite(y))continue;
       let p=pointers.get(id);
       if(kind==='down'){
         if(x<0||y<0||x>=view.w||y>=view.h)continue;
@@ -160,6 +167,13 @@ export async function setup(host) {
         captured.delete(id);pointers.delete(id);
       }
     }
+    // linkedom's document is separate from win: DOM bubbling never reaches
+    // the global touch listeners. The controller otherwise sees zero fingers
+    // and releases the joystick on every frame. Forward once per native event,
+    // including all fingers when one pointer ends or is cancelled.
+    win.dispatchEvent(new InputEvent('touch'+({down:'start',move:'move',up:'end',cancel:'cancel'}[kind]),{
+      touches:all,changedTouches:changed,bubbles:false,
+    }));
   }
   wx.onTouchStart(e=>touches('down',e));wx.onTouchMove(e=>touches('move',e));wx.onTouchEnd(e=>touches('up',e));wx.onTouchCancel(e=>touches('cancel',e));
   const fetch=createFetch(host.files,dispatchApi);
@@ -169,6 +183,7 @@ export async function setup(host) {
     Blob,URL:LocalURL,URLSearchParams:Params,fetch,Request,Headers,Response,AbortController,AbortSignal,TextDecoder,TextEncoder,createImageBitmap:undefined,ImageBitmap:undefined,OffscreenCanvas:undefined,
     ProgressEvent:InputEvent,MouseEvent:InputEvent,KeyboardEvent:InputEvent,PointerEvent:InputEvent,Path2D:CanvasPath,MutationObserver:doc.defaultView.MutationObserver,
     innerWidth:view.w,innerHeight:view.h,devicePixelRatio:view.dpr,uiPixelRatio:scale,screen:{width:view.w,height:view.h,orientation:{type:'landscape-primary',lock:()=>Promise.resolve()}},
+    mobileGraphics:{maxRatio:2.5,maxPixels:2600000,minRatio:1.5},
     navigator:{userAgent:'MicroMessenger MiniGame',language:'zh-CN',languages:['zh-CN'],maxTouchPoints:5,getGamepads:()=>[],onLine:true},
     AudioContext:wx.createWebAudioContext?class {constructor(){return wx.createWebAudioContext();}}:undefined,
     crypto:{getRandomValues(a){new Uint8Array(a.buffer,a.byteOffset,a.byteLength).set(random(a.byteLength));return a;}},
@@ -179,6 +194,7 @@ export async function setup(host) {
     addEventListener:win.addEventListener.bind(win),removeEventListener:win.removeEventListener.bind(win),dispatchEvent:win.dispatchEvent.bind(win),
     alert:msg=>wx.showModal({title:'字灵',content:String(msg),showCancel:false}),open:()=>null,
     prepareForest:host.files.prepareForest,
+    createCoopSocket:(url,events)=>wechatSocket(wx,url,events),
     onRunStartError(error){
       const restart=typeof wx.restartMiniProgram==='function';
       wx.showModal({title:'森林未能打开',content:String(error?.message||error),showCancel:false,
@@ -192,6 +208,7 @@ export async function setup(host) {
     locale,readLocale(lang){const p=host.files.pathFor('locale/'+lang+'.json');return p?JSON.parse(fs.readFileSync(p,'utf8')):{};},
   });
   env.window=env.self=env.globalThis=env;
+  installInvites(wx,env);
   wx.onWindowResize?.(()=>{
     const info=wx.getWindowInfo?wx.getWindowInfo():wx.getSystemInfoSync();
     Object.assign(view,viewport(info));

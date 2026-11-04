@@ -26,7 +26,8 @@ export function paint(layout,boxes,view,scale) {
     // Body sits behind the WebGL canvas in the desktop stacking order.
     if(tag!=='body'&&tag!=='#text'){
       const bg=background(ctx,s,b),border=s.border||s['border-top']||'',line=parseFloat(border)||0;
-      const radius=parseFloat(s['border-radius']||0);
+      const radiusValue=s['border-radius']||'0';
+      const radius=parseFloat(radiusValue)*(radiusValue.endsWith('%')?Math.min(w,h)/100:1);
       if(bg||line){rounded(ctx,x,y,w,h,radius);
         if(bg){ctx.fillStyle=bg;ctx.fill();}
         if(line){ctx.strokeStyle=colors(s['border-color']||border)[0]||'#dedbe8';ctx.lineWidth=line;ctx.stroke();}}

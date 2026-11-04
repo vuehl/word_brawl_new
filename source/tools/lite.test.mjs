@@ -47,6 +47,16 @@ test('HTTP blocks removed content, saves valid play once, and restores progressi
   assert.equal(two.profile.counters.runs,1);assert.equal(two.profile.stardust,one.profile.stardust);assert.deepEqual(two.profile.league,[1,4,7]);assert.deepEqual(two.profile.biomes,{forest:1});
   await stop();await start();const saved=(await call('/profile')).profile;
   assert.equal(saved.research[25],5);assert.equal(saved.stardust,one.profile.stardust);
+  const party='lan-'+'a'.repeat(32);
+  await call('/runs',{...base,party,coopSeed:0},400);
+  const coopRun=await call('/runs',{...base,party,coopSeed:123456});
+  assert.equal(coopRun.seed,123456);assert.equal(coopRun.party,party);
+  await call('/runs/'+coopRun.id+'/finish',{result},400);
+  const coop={party,size:2,local:true,teamKills:110,kills:110,members:[{id:'one',name:'伙伴一',species:7,kills:100,done:true,local:true},{id:'two',name:'伙伴二',species:4,kills:10,done:false,local:true}]};
+  await call('/runs/'+coopRun.id+'/finish',{result:{...result,coop:{...coop,party:'lan-'+'b'.repeat(32)}}},400);
+  const finished=await call('/runs/'+coopRun.id+'/finish',{result:{...result,coop}});
+  assert.deepEqual(finished.coop,coop);assert.deepEqual(finished.record.coop.members,coop.members);
+  assert.equal(finished.profile.counters.runs,2);
  }finally{if(proc&&proc.exitCode===null)await stop();assert.equal(path.dirname(path.resolve(dir)),path.resolve(os.tmpdir()));assert.ok(path.basename(dir).startsWith('pokebonk-lite-test-'));await fs.rm(dir,{recursive:true,force:true});}
 });
 

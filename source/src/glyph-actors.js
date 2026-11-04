@@ -121,6 +121,9 @@ export class GlyphActors {
   }
   hit(index, damage, critical, info = {}) {
     if (!(damage > 0)) return;
+    // The owner of a cooperative enemy decides its decomposition. A predicted
+    // hit on a proxy must not advance its glyph ahead of the owning client.
+    if (this.run.coop?.isProxy(index) || (this.run.coop?.isBossMirror(index) && !this.run.coop.bossAuthority)) return;
     const e = this.run.enemies, entry = this.entry(e.species[index]);
     if (!entry) return;
     const s = this.state(index, e.species[index], e.gen[index]);
@@ -129,6 +132,18 @@ export class GlyphActors {
     const step = nextDamageStep(entry.glyph, e.hp[index] / Math.max(1, e.maxHp[index]), s.step, critical);
     if (!step || this.run.time - s.changedAt < .16) return;
     this.detach(index, step, info);
+  }
+  syncStep(index, target) {
+    const e = this.run.enemies, entry = this.entry(e.species[index]);
+    if (!entry || !Number.isInteger(target) || target < 0 || target > 8) return;
+    const state = this.state(index, e.species[index], e.gen[index]);
+    while (!state.finished && state.step < target) {
+      const step = nextDamageStep(entry.glyph, 0, state.step);
+      if (!step) break;
+      const before = state.step;
+      this.detach(index, step, {});
+      if (state.step === before) break;
+    }
   }
   // Called only for an actual death, never for a zero-HP capture target.
   // A one-stroke monster releases its one stroke here. Multi-stroke monsters
@@ -166,7 +181,7 @@ export class GlyphActors {
       vx:dx * 2.6 + right.x * 1.1, vz:dz * 2.6 + right.z * 1.1,
       vy:3.6, angle:last.pose.angle, spin:4.5, life:2.3, bounces:0});
     if(step.terminal)s.finished=true;
-    else {s.glyph = step.to; s.step++; s.changedAt = this.run.time;}
+    else {s.glyph = step.to; s.step++; s.changedAt = this.run.time; this.run.coop?.sendGlyph(index, s.step);}
     // A second release in the same frame must use the new glyph dimensions.
     s.last=null;
     this.stats.breaks++;

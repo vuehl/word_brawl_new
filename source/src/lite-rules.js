@@ -5,7 +5,9 @@ export const isLiteSpecies = id => LITE_SPECIES.includes(Number(id));
 export const isLiteFamily = id => Number.isInteger(Number(id)) && Number(id) >= 1 && Number(id) <= 9;
 export function validLiteRun(run) {
   return !!run && isLiteSpecies(run.species) && run.biome === LITE_BIOME &&
-    (!run.mode || run.mode === 'standard' || run.mode === 'classic') && !run.party &&
+    (!run.mode || run.mode === 'standard' || run.mode === 'classic') &&
+    (!run.party || (/^lan-[a-f0-9]{32}$/.test(run.party) &&
+      Number.isInteger(run.coopSeed) && run.coopSeed > 0 && run.coopSeed < 2 ** 31)) &&
     Number.isInteger(run.tier ?? 0) && (run.tier ?? 0) >= 0 && (run.tier ?? 0) <= 2;
 }
 export function constrainLiteProfile(p) {

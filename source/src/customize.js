@@ -17,6 +17,27 @@ if (stationeryArtEnabled) biomes.find(biome => biome.id === 'forest').artTheme =
 if (typeof document !== 'undefined') {
   const style=document.createElement('style');
   style.textContent=`
+    .coop-lan .coop-panel{width:min(880px,100%);padding:12px 16px;max-height:100%;overflow-y:auto}
+    .coop-lan .lite-map-head>.lite-actions{flex:none;width:206px;margin:0}
+    .coop-lan .btn{min-height:36px;padding:7px 10px;font-size:14px;min-width:0}
+    .coop-lan .lite-actions{margin:6px 0;gap:6px}
+    .coop-columns{display:flex;gap:12px;margin:6px 0;align-items:stretch}
+    .coop-section{flex:1;min-width:0;padding:10px;background:#eaf1e7;border:1px solid #d7e3d2;border-radius:12px}
+    .coop-section>input{display:block;width:100%;height:38px;padding:6px 10px;margin:6px 0;border:1px solid #9fb7a8;border-radius:8px;background:#fff;color:#22352c;font-size:16px}
+    .coop-code{display:block;margin:3px 0 6px;font-size:32px;line-height:1.15;color:#184333}
+    .coop-members{display:flex;flex-direction:column;gap:4px}
+    .coop-member{display:flex;align-items:center;gap:6px;font-size:13px;min-height:28px;border-bottom:1px solid #ceddd1;padding:1px 0}
+    .coop-member>span{flex:1;min-width:0}
+    .coop-member>b{flex:none;font-size:12px}
+    .coop-member .btn{flex:none;padding:2px 4px;min-height:26px;font-size:11px}
+    .coop-lan .coop-picks .btn{font-size:12px;padding:6px 4px;min-height:32px;white-space:nowrap}
+    .coop-lan .coop-status{color:#246147;font-size:13px;line-height:1.4;margin:5px 0}
+    .coop-lan .coop-error{color:#ae2743;font-size:13px;line-height:1.4;margin:5px 0}
+    .coop-help{margin:8px 0;padding:10px;background:#fff8e7;border:1px solid #e9dcb4;border-radius:10px}
+    @media (max-width:550px){.coop-columns{flex-direction:column}}
+    .tc-stick{opacity:.85;background:#163d3440;border:2px solid #ffffffc0;border-radius:999px}
+    .tc-stick>i{background:#f0fff7;border:2px solid #327557;border-radius:999px}
+    .tc-move-label{display:block;position:absolute;left:0;bottom:-20px;width:100%;text-align:center;font-size:12px;font-weight:700;color:#244b3d;pointer-events:none}
     .lite-home,.lite-map{display:flex!important;align-items:center;justify-content:flex-start;padding:18px 5vw;overflow-y:auto}
     .lite-panel{flex:none;margin:auto 0;width:min(760px,100%);padding:24px 30px;border:2px solid #ffffff99;border-radius:22px;background:#fffffff5;color:#22352c;box-shadow:0 15px 60px #152b2c55;backdrop-filter:blur(12px)}
     .lite-kicker{margin:16px 0 8px;font-size:13px;font-weight:800;color:#3c7662;letter-spacing:2px}
@@ -135,6 +156,10 @@ if (typeof document !== 'undefined') {
       .modal .actions .btn{padding:6px 12px;font-size:14px;min-height:32px}
     }
     @media (orientation:landscape) and (max-height:420px){
+      .coop-lan .coop-panel{padding:8px 12px}
+      .coop-columns{margin:4px 0}
+      .coop-section{padding:8px}
+      .coop-members{gap:2px}
       html.touch .hud-tr{right:56px;gap:4px}
       html.touch .hud-tr .minimap{width:calc(92px * var(--mm,1));height:calc(92px * var(--mm,1))}
       .tc-pause,.tc-aim{right:8px;width:40px}

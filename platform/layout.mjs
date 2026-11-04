@@ -199,7 +199,9 @@ export function createLayout(doc,view,native,fonts,uiAssets) {
     const screens=doc.querySelectorAll('#ui > .screen');
     const screen=screens[screens.length-1];
     const name=screen?Array.from(screen.classList).find(c=>ref.screens[c]):(runState==='paused'?'paused':'play');
-    metrics=ref.screens[name]||{};
+    // Room membership and the new home actions change shape at runtime. Their
+    // flow layout must not inherit coordinates captured from the old menu.
+    metrics=screen?.hasAttribute('data-live-layout')?{}:ref.screens[name]||{};
     // CSS variables on :root are inherited by the body.
     const parent={s:engine.style(doc.documentElement,null)};
     const root=make(doc.body,parent);root.node.setWidth(view.w);root.node.setHeight(view.h);

@@ -6,6 +6,7 @@ import os from 'node:os';
 import {build} from 'esbuild';
 import puppeteer from 'puppeteer-core';
 import sharp from 'sharp';
+import {verifyTouchMovement} from './verify-touch.mjs';
 const root=path.resolve(import.meta.dirname,'..'),game=path.join(root,'minigame');
 const chrome=process.env.CHROME_PATH||'C:/Program Files/Google/Chrome/Application/chrome.exe';
 const dir=process.env.ZILING_QA||path.join(os.tmpdir(),'ziling-native-check');fs.mkdirSync(dir,{recursive:true});
@@ -214,7 +215,7 @@ async function verifyStartup(){
   if(phoneLayout){
     for(const [w,h] of [[667,320],[1024,768],[812,360]]){
       await resize(w,h);
-      await shown('.lite-mon',3);await shown('.lite-actions button',3);await shown('.lite-save');
+      await shown('.lite-mon',3);await shown('.lite-actions button',4);await shown('.lite-save');
     }
   }
   await tap('.lite-home .lite-mon:nth-child(2)');
@@ -256,15 +257,10 @@ async function verifyStartup(){
     assert.ok(controlsClear,'Combat buttons overlap on the short landscape viewport');
     assert.equal(await page.evaluate(()=>app.hud.els.biome.textContent),'青翠森林');
     assert.ok(await page.evaluate(()=>app.r.canvas.width>=inspected.uiCanvas.width-1&&
-      app.r.composer.inputBuffer.width<app.r.canvas.width),'UI is presented above the world render resolution');
-    const start=await page.evaluate(()=>{
-      const screen=inspected.doc.getElementById('game').getBoundingClientRect();
-      const x=inspected.env.innerWidth*.2-screen.left,y=inspected.env.innerHeight*.65-screen.top;
-      window.tap(x,y,'down');window.tap(x+38,y,'move');
-      return {x,y,px:app.run.player.pos.x,pz:app.run.player.pos.z};
-    });
-    await page.waitForFunction(({px,pz})=>Math.hypot(app.run.player.pos.x-px,app.run.player.pos.z-pz)>.2,{timeout:7000},start);
-    await page.evaluate(({x,y})=>window.tap(x+38,y,'up'),start);
+      app.r.composer.inputBuffer.width<=app.r.canvas.width&&app.r.composer.inputBuffer.width>=innerWidth-1),
+      'World must stay at least CSS-pixel resolution; UI retains screen density');
+    console.log('held native touch',await verifyTouchMovement(page));
+    if(await page.evaluate(()=>app.run.state==='paused'))await tap('.modal button','继续');
     await tap('.tc-pause');
     await page.waitForFunction(()=>app.run.state==='paused');
     await page.screenshot({path:path.join(dir,'04-pause.png')});

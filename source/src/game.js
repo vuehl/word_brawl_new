@@ -4,6 +4,7 @@ import {GlyphActors} from './glyph-actors.js';
 import {GlyphHero} from './glyph-hero.js';
 import {HERO_ART} from './glyph-hero-art.js';
 import {LITE_SPECIES, isLiteSpecies, isLiteFamily} from './lite-rules.js';
+import {showMultiplayer} from './multiplayer-ui.js';
 import {mountLiteQA} from './lite-qa.js';
 import {stationeryArtEnabled} from './customize.js';
 import {scaleStationeryTerrain} from './stationery-terrain.js';
@@ -1439,7 +1440,9 @@ function Lo(e, t = !1) {
       : c(`Pulsa {k}`, { k: ta(e === `E` ? `interact` : `ult`) });
   return t ? n[0].toLowerCase() + n.slice(1) : n;
 }
-var Ro = () => uo && Math.min(screen.width, screen.height) < 600,
+// Native phones use an explicit render budget. Do not silently enable the
+// old low-resolution battery preset just because the screen is small.
+var Ro = () => !window.mobileGraphics && uo && Math.min(screen.width, screen.height) < 600,
   zo = `pb-battery`,
   Bo = () => {
     try {
@@ -5387,6 +5390,14 @@ var oc = (e, t) =>
       (n || (r = Math.min(r, Math.max(0.5, Math.sqrt((this.hires ? (uo ? 16e5 : 37e5) : 22e5) / (e * t))))),
         n || (r = Math.max(0.5, r * this.dynRes)),
         (r = Math.round(r * 100) / 100));
+      if (!n && window.mobileGraphics) {
+        const profile = window.mobileGraphics;
+        const target = this.quality.saver || !this.hires ? 1 : this.quality.bloom ? profile.maxRatio : 2;
+        const base = Math.min(window.devicePixelRatio || 1, target, Math.sqrt(profile.maxPixels / (e * t)));
+        // A performance dip must not turn the world into a sub-CSS-pixel
+        // image that is stretched underneath a crisp HUD.
+        r = Math.floor(Math.min(base, Math.max(Math.min(base, profile.minRatio), base * this.dynRes)) * 100) / 100;
+      }
       // Keep the world render targets at the chosen game quality. A phone can
       // present the final pass and the UI at a higher resolution for legible text.
       const displayRatio = Math.max(r, window.uiPixelRatio || r);
@@ -39424,6 +39435,7 @@ var e_ = class {
         (c.flash[e] = 1),
         (c.squash[e] = Math.max(c.squash[e], 0.4)),
         (c.lastHitBy[e] = Gg - o));
+      s.glyphActors?.hit(e, t, false, {dirX:c.x[e]-i,dirZ:c.z[e]-a});
       for (let t of n) t !== `knock` && this.applyStatus(e, t, r);
       let l =
         c.flags[e] & (R.Boss | R.Summoner) ? 0.05 : c.flags[e] & 12290 ? 0.2 : c.flags[e] & R.Elite ? 0.6 : 1;
@@ -74677,6 +74689,7 @@ var GT = 15,
     room;
     party;
     size;
+    roster;
     mySlot;
     peers = new Map();
     bySlot = new Map();
@@ -74740,6 +74753,7 @@ var GT = 15,
     constructor(e, t) {
       ((this.run = e), (this.room = t.room), (this.party = t.party));
       let n = this.room.room.members;
+      this.roster = n.map(member => ({...member}));
       ((this.size = n.length), (this.mySlot = this.room.mine?.slot ?? 0));
       for (let e of n) {
         if (e.id === this.room.me) continue;
@@ -74781,8 +74795,13 @@ var GT = 15,
           ctl: (e, t) => this.onCtl(e, t),
           snap: (e, t) => this.onSnap(e, t),
           link: (e, t) => this.onLink(e, t),
-          closed: () => {
+          closed: (reason) => {
             for (let e of this.peers.values()) this.peerGone(e);
+            if (this.room.url && this.run.state !== 'over') {
+              this.run.ui.toast(reason || '联机已断开，请重新组队', null);
+              this.run.endHow = 'disconnect';
+              void this.run.finish(false);
+            }
           },
         }));
     }
@@ -74987,8 +75006,10 @@ var GT = 15,
           i.set(e.key, l);
         }
         for (let e = 0; e < a.length; e += 1080)
-          this.room.mesh.sendCtl(t.id, { t: `en`, l: a.slice(e, e + 1080) });
+          this.room.mesh.sendCtl(t.id, { t: `en`, l: a.slice(e, e + 1080), st:this.run.stage,
+            g:a.slice(e,e+1080).filter((_,i)=>i%9===0).map(key=>[key,this.run.glyphActors?.states.get(LT(key))?.step||0]) });
         for (let [e, t] of i) l - t > tE && i.delete(e);
+        if (s) this.room.mesh.sendCtl(t.id, {t:'bossglyph',st:e.stage,step:e.glyphActors?.states.get(c)?.step||0});
         this.room.mesh.sendSnap(t.id, this.writer.finish(r, KT));
       }
     }
@@ -75460,6 +75481,7 @@ var GT = 15,
             ((i.hp[a] -= Math.min(n, 1e30)),
             (i.flash[a] = Math.max(i.flash[a], 0.6)),
             r.boss.kit?.clampHp(),
+            r.glyphActors?.hit(a, n, false),
             i.hp[a] <= 0 && r.combat.killEnemy(a, {}))));
     }
     bossDefeated() {
@@ -75512,6 +75534,14 @@ var GT = 15,
       let e = this.run.stats.kills;
       for (let t of this.peers.values()) e += t.kills;
       return e;
+    }
+    resultSummary() {
+      return {party:this.party,size:this.size,local:true,kills:this.teamKills,teamKills:this.teamKills,
+        members:this.roster.map(member=>{
+          const mine=member.id===this.room.me,peer=this.peers.get(member.id);
+          return {id:mine?this.run.meta.account.id:member.id,name:member.name,species:member.species,
+            kills:mine?this.run.stats.kills:peer?.kills||0,done:mine||!!peer?.gone,local:true};
+        })};
     }
     downedNear() {
       let e = this.run.player.pos,
@@ -75753,6 +75783,14 @@ var GT = 15,
       switch (t.t) {
         case `en`:
           Array.isArray(t.l) && this.onDescriptors(n, t.l);
+          this.onGlyph(n, t);
+          break;
+        case `glyph`:
+          this.onGlyph(n, t);
+          break;
+        case `bossglyph`:
+          if (t.st === r.stage && n.slot === this.bossAuth && this.isBossMirror(r.boss.bossIndex))
+            r.glyphActors?.syncStep(r.boss.bossIndex,t.step);
           break;
         case `want`:
           if (Array.isArray(t.l)) {
@@ -76077,6 +76115,19 @@ var GT = 15,
         (this.spec = e[Math.max(0, t)]),
         this.tmpV.set(this.spec.x, this.spec.y, this.spec.z)
       );
+    }
+    sendGlyph(index, step) {
+      if (this.isProxy(index) || this.isBossMirror(index) || this.ended) return;
+      this.broadcast({t:'glyph', st:this.run.stage, g:[[IT(index,this.run.enemies.gen[index]),step]]});
+    }
+    onGlyph(peer, packet) {
+      if (packet.st !== this.run.stage || !Array.isArray(packet.g)) return;
+      for (const pair of packet.g.slice(0,400)) {
+        if (!Array.isArray(pair) || !Number.isInteger(pair[0])) continue;
+        const index=this.proxies.get((peer.slot<<12)|LT(pair[0]));
+        if (index !== undefined && this.pKey[index]===pair[0] && this.run.enemies.alive[index])
+          this.run.glyphActors?.syncStep(index,pair[1]);
+      }
     }
     broadcast(e) {
       this.room.mesh.broadcast(e);
@@ -77602,7 +77653,7 @@ var GT = 15,
         items: [...this.player.items.keys()],
         splits: this.splits.slice(),
         mode: this.mode,
-        ...(this.coop ? { coop: { party: this.coop.party, size: this.coop.size } } : {}),
+        ...(this.coop ? { coop: this.coop.resultSummary() } : {}),
         ...(this.endless ? { pacts: this.endless.pacts.slice() } : {}),
         ...(this.tower ? { tower: this.tower.result() } : {}),
         ...(this.slotSpins
@@ -78869,7 +78920,7 @@ var ME = class {
     off;
     constructor(e) {
       ((this.knob = X(`i`)),
-        (this.stick = X(`div`, { class: `tc-stick` }, this.knob)),
+        (this.stick = X(`div`, { class: `tc-stick` }, this.knob, X('span', {class:'tc-move-label'}, '移动'))),
         (this.ult = X(
           `div`,
           { class: `ult tc-btn tc-ultb` },
@@ -84816,6 +84867,8 @@ function VA(e) {
   return Object.assign(i, { value: n, focus: () => t[0].focus() });
 }
 function HA(e, t = () => CP(e)) {
+  return showMultiplayer(e, {element:X, screen:MN, home:CP, partner:id=>k.get(id).name});
+  // The original WebRTC lobby remains below for upstream reference.
   if (e.coopRoom?.open) {
     ej(e, e.coopRoom);
     return;
@@ -94791,9 +94844,18 @@ function SP() {
 }
 function CP(e) {
   mountLiteQA(e);
+  if (!e.coopInviteBound) {
+    e.coopInviteBound = true;
+    window.getCoopShareRoom = () => e.coopRoom;
+    window.addEventListener('coopinvite', () => {
+      if (e.meta?.profile?.starter && !e.run && !e.coopRoom?.open && !e.coopConnecting) HA(e);
+    });
+  }
+  if (!e.run && e.coopRoom?.open) { void e.coopRoom.leave(); e.coopRoom = null; }
   if (location.hostname === '127.0.0.1' && location.port === '18189' && new URLSearchParams(location.search).get('qa') === 'glyph') window.__glyphApp = e;
   const meta=e.meta, p=meta.profile;
   if(!p.starter){wP(e);return;}
+  if (window.getCoopInvitation?.()) { HA(e); return; }
   e.pendingRoom=null;
   e.menuScene?.setBiome('forest'); e.menuScene?.setView('main');
   const button=(label,action,cls='blue')=>X('button',{class:'btn big '+cls,onclick:action},label);
@@ -94802,11 +94864,11 @@ function CP(e) {
     X('h1',{},'字灵 · 拆字冒险'),
     X('p',{class:'lite-lead'},'整字翻滚、蠕动、跳跃。打掉一横，正变成止；击飞火旁，灼变成勺。'),
     X('div',{class:'lite-partners'},...LITE_SPECIES.map(id=>X('button',{class:'lite-mon',onclick:()=>KP(e,'standard',id)},rw(id),X('b',{},k.get(id).name)))),
-    X('div',{class:'lite-actions'},button('开始冒险',()=>KP(e),'red'),button('研究所',()=>_F(e)),button('设置',()=>$F(e),'ghost')),
-    X('p',{class:'lite-save'},'单机 · 本机存档 · '+(p.counters.runs??0)+' 局 · 星星沙子 '+p.stardust),
+    X('div',{class:'lite-actions'},button('开始冒险',()=>KP(e),'red'),button('多人联机',()=>HA(e)),button('研究所',()=>_F(e)),button('设置',()=>$F(e),'ghost')),
+    X('p',{class:'lite-save'},'单人 / 多人合作 · 本机存档 · '+(p.counters.runs??0)+' 局 · 星星沙子 '+p.stardust),
     X('p',{class:'lite-note'},'所有怪物均有拆解处理 · 完整主角 · 原版配色'),
     X('div',{class:'lite-credits'},nP(()=>rI(e)))
-  ));
+  )).setAttribute('data-live-layout','');
   NN(event=>{if(event.key==='Enter')KP(e);});
 }
 function wP(e) {
@@ -100484,7 +100546,7 @@ function XF(e, t, n = () => CP(e)) {
                           `button`,
                           {
                             class: `pf-mate` + (i.id === l.id ? ` me` : ``),
-                            disabled: i.id === l.id || !r,
+                            disabled: i.id === l.id || !r || i.local,
                             title: i.done ? `` : c(`Aún jugando`),
                             onclick: () => {
                               (N.click(), XF(e, { id: i.id }, () => XF(e, t, n)));
@@ -101262,11 +101324,11 @@ function nI(e) {
             c(`Calidad`),
             `quality`,
             [
-              [`high`, c(`Alta`)],
-              [`medium`, c(`Media`)],
-              [`low`, c(`Baja`)],
+              [`high`, window.mobileGraphics ? '清晰' : c(`Alta`)],
+              [`medium`, window.mobileGraphics ? '均衡' : c(`Media`)],
+              [`low`, window.mobileGraphics ? '流畅' : c(`Baja`)],
             ],
-            c(`Baja da más rendimiento`),
+            window.mobileGraphics ? '清晰优先保留场景细节；卡顿时可选均衡或流畅。省电模式会降低分辨率。' : c(`Baja da más rendimiento`),
           ),
           s(
             c(`Ahorro de batería`),
@@ -102700,6 +102762,8 @@ var OI = [
           (t.skin = e.skin ?? ``),
           t.img?.remove(),
           (t.img = GC(e.species, e.skin || null, e.species)),
+          (t.img.style.width = '44px'),
+          (t.img.style.height = '44px'),
           t.med.prepend(t.img));
         let n = YC(Ni[k.get(e.species)?.types[0] ?? `normal`] ?? 16777215);
         (t.card.style.setProperty(`--c`, n), t.tag.style.setProperty(`--c`, n));
@@ -107937,7 +108001,7 @@ var JI = class {
               X(
                 `span`,
                 {},
-                r && r.rank == null
+                r?.local ? '合作对局记录和成长已保存到本机；本版本不设在线排行榜。' : r && r.rank == null
                   ? c(
                       `Este equipo no entra en la clasificación cooperativa (hace falta que todos tengan cuenta).`,
                     )
@@ -109914,6 +109978,7 @@ var TL = () => d(Date.now()).some((e) => e.id === `halloween26`),
               boosts: e.boosts,
               mode: e.mode,
               party: e.coop?.party,
+              coopSeed: e.coop?.seed,
             })),
             e.coop && (t.offline || t.party !== e.coop.party))
           )

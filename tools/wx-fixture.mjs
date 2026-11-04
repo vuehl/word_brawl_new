@@ -69,6 +69,11 @@ globalThis.wx={
     safeArea:window.phoneLayout?{left:28,top:6,right:innerWidth-16,bottom:innerHeight-8}:undefined}),
   getMenuButtonBoundingClientRect:()=>window.phoneLayout?{left:innerWidth-106,right:innerWidth-16,top:4,bottom:32}:undefined,
   onWindowResize:fn=>window.addEventListener('resize',fn),
+  getLaunchOptionsSync:()=>({query:window.fixtureLaunchQuery||{}}),
+  showShareMenu(){},onShareAppMessage(fn){window.fixtureShareMenu=fn;},
+  shareAppMessage(options){window.fixtureShare=options;},
+  setClipboardData({data,success}){window.fixtureClipboard=data;success?.({});},
+  getClipboardData({success}){success({data:window.fixtureClipboard||''});},
   getRandomValues({length,success}){success({randomValues:crypto.getRandomValues(new Uint8Array(length)).buffer});},
   createCanvas:canvas,createOffscreenCanvas:nativeCanvas,
   createImage(){const img=new Image();Object.defineProperty(img,'src',{get(){return imageSrc.get.call(img);},set(path){
@@ -78,6 +83,15 @@ globalThis.wx={
   loadFont(path){const family=path.includes('bold')?'Bold'+path.slice(-10):'Face'+path.slice(-14,-4);
     const face=new FontFace(family,bytes(path));document.fonts.add(face);face.load().catch(console.error);return family;},
   createWebAudioContext:()=>new AudioContext(),getStorageSync:k=>localStorage.getItem(k)||'',setStorageSync:(k,v)=>localStorage.setItem(k,v),removeStorageSync:k=>localStorage.removeItem(k),
+  connectSocket(options){
+    const socket=new WebSocket(options.url),handlers={};socket.binaryType='arraybuffer';
+    (window.fixtureSockets||(window.fixtureSockets=[])).push(socket);
+    socket.onopen=()=>handlers.open?.();socket.onmessage=e=>handlers.message?.({data:e.data});
+    socket.onerror=()=>handlers.error?.();socket.onclose=()=>handlers.close?.();
+    return {onOpen:fn=>handlers.open=fn,onMessage:fn=>handlers.message=fn,onError:fn=>handlers.error=fn,onClose:fn=>handlers.close=fn,
+      send({data,success,fail,complete}){try{socket.send(data);success?.();}catch(e){fail?.(e);}finally{complete?.();}},
+      close(){socket.close();}};
+  },
   showLoading(o){window.loadingTitle=o.title;},hideLoading(){window.loadingTitle=null;},showModal(o){window.problem=o.content;console.error('WX MODAL',o.content);},
   loadSubpackage(o){
     let notify;
@@ -100,8 +114,14 @@ globalThis.wx={
   }
 };
 for(const [key,event] of Object.entries({TouchStart:'touchstart',TouchEnd:'touchend',TouchMove:'touchmove',TouchCancel:'touchcancel',Hide:'pagehide',Show:'pageshow'})){
-  wx['on'+key]=fn=>{events[key]=fn;if(event.startsWith('touch'))document.addEventListener(event,fn,{passive:false});};
+  wx['on'+key]=fn=>{(events[key]||(events[key]=[])).push(fn);if(event.startsWith('touch'))document.addEventListener(event,fn,{passive:false});};
 }
+const heldTouches=new Map();
+window.fixtureEvent=(key,event)=>{for(const fn of events[key]||[])fn(event);};
 window.tap=(x,y,kind='tap',id=1)=>{const t={identifier:id,clientX:x,clientY:y,pageX:x,pageY:y};
-  const send=k=>events[k]?.({touches:k==='TouchEnd'?[]:[t],changedTouches:[t]});
-  if(kind==='tap'||kind==='down')send('TouchStart');if(kind==='move')send('TouchMove');if(kind==='tap'||kind==='up')send('TouchEnd');};
+  const send=k=>{
+    if(k==='TouchEnd'||k==='TouchCancel')heldTouches.delete(id);else heldTouches.set(id,t);
+    window.fixtureEvent(k,{touches:[...heldTouches.values()],changedTouches:[t]});
+  };
+  if(kind==='tap'||kind==='down')send('TouchStart');if(kind==='move')send('TouchMove');
+  if(kind==='tap'||kind==='up')send('TouchEnd');if(kind==='cancel')send('TouchCancel');};

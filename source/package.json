@@ -3,7 +3,7 @@
   "version": "0.8.34-lite.1",
   "private": true,
   "type": "module",
-  "description": "Single-player forest edition with three playable starter families",
+  "description": "Forest edition with single-player and 2–4 player cooperative rooms",
   "scripts": {
     "start": "node server.mjs",
     "test": "node --test tools/lite.test.mjs",
