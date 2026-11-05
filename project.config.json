@@ -28,7 +28,7 @@
   },
   "compileType": "game",
   "libVersion": "latest",
-  "appid": "wx4101bd6d1ad9a61f",
+  "appid": "wxa545e5ead35ffb1b",
   "projectname": "ziling-wechat",
   "condition": {
     "search": {
@@ -52,8 +52,14 @@
   "packOptions": {
     "ignore": [],
     "include": [
-      {"type":"file","value":"play.js"},
-      {"type":"suffix","value":".br"}
+      {
+        "type": "file",
+        "value": "play.js"
+      },
+      {
+        "type": "suffix",
+        "value": ".br"
+      }
     ]
   },
   "isGameTourist": false,

@@ -7,6 +7,7 @@ import {build} from 'esbuild';
 import puppeteer from 'puppeteer-core';
 import sharp from 'sharp';
 import {verifyTouchMovement} from './verify-touch.mjs';
+import {verifyTouchControls} from './verify-controls.mjs';
 const root=path.resolve(import.meta.dirname,'..'),game=path.join(root,'minigame');
 const chrome=process.env.CHROME_PATH||'C:/Program Files/Google/Chrome/Application/chrome.exe';
 const dir=process.env.ZILING_QA||path.join(os.tmpdir(),'ziling-native-check');fs.mkdirSync(dir,{recursive:true});
@@ -36,8 +37,12 @@ const srv=http.createServer((req,res)=>{
   res.statusCode=404;res.end();
 });
 await new Promise(r=>srv.listen(0,'127.0.0.1',r));
-const b=await puppeteer.launch({executablePath:chrome,headless:true,args:['--use-angle=swiftshader','--enable-unsafe-swiftshader','--no-sandbox','--autoplay-policy=no-user-gesture-required','--disable-background-timer-throttling']});
+const b=await puppeteer.launch({executablePath:chrome,headless:true,args:['--use-angle=swiftshader','--enable-unsafe-swiftshader','--no-sandbox','--autoplay-policy=no-user-gesture-required','--disable-background-timer-throttling','--disable-renderer-backgrounding','--disable-backgrounding-occluded-windows']});
 const page=await b.newPage(),errors=[];
+// State checks need not wait for a software-rendered WebGL frame, particularly
+// while resizing a high-DPI phone viewport on Windows.
+const waitForFunction=page.waitForFunction.bind(page);
+page.waitForFunction=(fn,options,...args)=>waitForFunction(fn,{polling:100,...options},...args);
 let homePainted=false;
 page.on('console',m=>{if(m.type()==='info'&&m.text().startsWith('[字灵启动] 游戏首页已绘制'))homePainted=true;});
 page.on('console',async m=>{if(m.type()==='error'||m.type()==='warn'){const msg=m.text();if(!msg.includes('favicon')&&!msg.includes('ReadPixels')){
@@ -66,7 +71,9 @@ await page.evaluateOnNewDocument(()=>{
 });
 const failFrame=process.argv.includes('--fail-first-frame');
 const phoneLayout=process.argv.includes('--phone-layout');
+const controlsOnly=process.argv.includes('--controls-only');
 if(phoneLayout)await page.evaluateOnNewDocument(()=>{window.phoneLayout=true;});
+if(process.argv.includes('--ios'))await page.evaluateOnNewDocument(()=>{window.fixturePlatform='ios';});
 if(process.argv.includes('--eager-entry'))await page.evaluateOnNewDocument(()=>{window.eagerEntry=true;});
 if(failFrame)await page.evaluateOnNewDocument(()=>{window.failFirstFrame=true;});
 if(process.argv.includes('--retry-text'))await page.evaluateOnNewDocument(()=>{window.dropTextOnce=true;});
@@ -173,13 +180,19 @@ async function verifyStartup(){
         return b&&b.opacity>0&&b.w>1&&b.h>1&&b.x>=b.clip.x-1&&b.y>=b.clip.y-1&&
           b.x+b.w<=b.clip.r+1&&b.y+b.h<=b.clip.b+1;
       });
-    },{timeout:10000},selector,expected);}
-    catch(error){throw Error('Not fully visible: '+selector+' ('+expected+' expected)',{cause:error});}
+    },{timeout:20000},selector,expected);}
+    catch(error){
+      console.log('Visibility bounds',await page.evaluate(selector=>[...inspected.doc.querySelectorAll(selector)].map(el=>{
+        const b=inspected.layout.box(el);return {text:el.textContent,box:b&&{x:b.x,y:b.y,w:b.w,h:b.h,clip:b.clip,opacity:b.opacity}};
+      }),selector));
+      await page.screenshot({path:path.join(dir,'failure-layout.png')});
+      throw Error('Not fully visible: '+selector+' ('+expected+' expected)',{cause:error});
+    }
   }
   async function resize(width,height){
     await page.setViewport({width,height,deviceScaleFactor:2});
     await page.waitForFunction((w,h)=>inspected.env.innerWidth===w-44&&inspected.env.innerHeight===h-44,
-      {timeout:5000},width,height);
+      {timeout:20000},width,height);
   }
   async function tap(selector,match){
     const target=await page.waitForFunction((selector,match)=>{
@@ -210,8 +223,14 @@ async function verifyStartup(){
     await page.screenshot({path:path.join(dir,'01-partners.png')});
   }
   await tap('.sp-go');
-  await page.waitForFunction(()=>inspected.doc.querySelector('.lite-home'),{timeout:16000});
+  await page.waitForFunction(()=>Boolean(inspected.doc.querySelector('.lite-home')),{timeout:16000,polling:100});
   await sleep(1000);await page.screenshot({path:path.join(dir,'02-home.png')});
+  if(controlsOnly){
+    assert.ok(await page.evaluate(async()=>{
+      await inspected.env.prepareForest();
+      return app.startRun({species:4,biome:'forest',tier:0,boosts:[],mode:'standard'});
+    }),'Controlled forest run must start');
+  }else{
   if(phoneLayout){
     for(const [w,h] of [[667,320],[1024,768],[812,360]]){
       await resize(w,h);
@@ -240,8 +259,9 @@ async function verifyStartup(){
     await page.screenshot({path:path.join(dir,'02-map.png')});
   }
   await tap('.lite-map button','进入森林');
+  }
   await page.waitForFunction(()=>window.app?.run?.glyphHero&&app.run.glyphActors,{timeout:60000});
-  await page.waitForFunction(()=>app.run.glyphHero.ready&&app.run.time>3&&app.run.glyphActors.stats.drawn>0,{timeout:90000});
+  await page.waitForFunction(()=>app.run.glyphHero.ready&&app.run.time>3&&app.run.glyphActors.stats.drawn>0,{timeout:120000,polling:100});
   await page.screenshot({path:path.join(dir,'03-forest.png')});
   if(phoneLayout){
     await shown('.tc-pause');await shown('.tc-jump');await shown('.tl-name');await shown('.ht-biome');
@@ -261,6 +281,8 @@ async function verifyStartup(){
       'World must stay at least CSS-pixel resolution; UI retains screen density');
     console.log('held native touch',await verifyTouchMovement(page));
     if(await page.evaluate(()=>app.run.state==='paused'))await tap('.modal button','继续');
+    const controls=await verifyTouchControls(page,{baseline:process.argv.includes('--touch-baseline')});
+    fs.writeFileSync(path.join(dir,'controls.json'),JSON.stringify(controls,null,2));
     await tap('.tc-pause');
     await page.waitForFunction(()=>app.run.state==='paused');
     await page.screenshot({path:path.join(dir,'04-pause.png')});
@@ -287,6 +309,7 @@ async function verifyStartup(){
 }
 try{await verifyStartup();}
 catch(error){console.error('Stopped on',await page.evaluate(()=>({screen:window.app?.screen?.className,state:window.app?.run?.state,
+    hidden:document.hidden,halted:window.app?.halted,homeFound:Boolean(window.inspected?.doc.querySelector('.lite-home')),
     text:window.inspected?.doc.body.textContent.slice(-400),errors:window.problem,
     boxes:[...(window.inspected?.doc.querySelectorAll('.lite-map button')||[])].map(el=>{const r=el.getBoundingClientRect();return [el.textContent,r.x,r.y,r.width,r.height,inspected.layout.hit(r.x+r.width/2,r.y+r.height/2)?.className];}),
     missing:[...(window.missingAssets||[])]})));throw error;

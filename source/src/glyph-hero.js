@@ -42,17 +42,22 @@ export class GlyphHero {
     this.run=run;this.ready=false;this.disposed=false;this.species=0;
     this.shots=0;this.side=1;this.release=[-100,-100];this.gestureAt=-100;
     this.lastShot=null;this.pose=null;
+    this.poseInterval=1/(window.mobileGraphics?.heroFPS||Infinity);
+    this.drawAt=-Infinity;this.textureUpdates=0;this.poseRevision=0;this.drawRevision=-1;
     this.geometry=new PlaneGeometry(1.28,1.28);
     this.geometry.translate(0,.5,0);
-    this.canvas=document.createElement('canvas');this.canvas.width=this.canvas.height=512;
+    this.canvas=document.createElement('canvas');this.canvas.width=this.canvas.height=window.mobileGraphics?.heroTextureSize||512;
     this.ctx=this.canvas.getContext('2d');
     this.texture=new CanvasTexture(this.canvas);this.ready=true;
     this.texture.colorSpace=SRGBColorSpace;
-    // Three's default linear magnification and trilinear mip filtering preserve
-    // the antialiased 400px font outlines at both close and distant views.
+    if(window.mobileGraphics?.heroTextureSize){
+      this.texture.generateMipmaps=false;this.texture.minFilter=this.texture.magFilter;
+    }
+    // Keep smooth font edges; the iOS profile avoids regenerating mipmaps for
+    // this frequently updated, small on-screen character.
     const s=run.r.shared;
     this.material=new ShaderMaterial({uniforms:{
-      map:{value:this.texture},uTexel:{value:new Vector2(1/512,1/512)},
+      map:{value:this.texture},uTexel:{value:new Vector2(1/this.canvas.width,1/this.canvas.height)},
       uPos:{value:new Float32Array(3)},uSize:{value:new Float32Array(2)},
       uRegion:{value:new Float32Array(4)},uFx:{value:new Float32Array(4)},
       uTint:{value:new Float32Array([1,1,1,0])},uLook:{value:new Float32Array(2)},
@@ -88,7 +93,7 @@ export class GlyphHero {
     this.release=[-100,-100];this.gestureAt=-100;this.pose=null;
     return true;
   }
-  attack(){this.gestureAt=this.run.time;}
+  attack(){this.gestureAt=this.run.time;this.poseRevision++;}
   sample(){
     const p=this.run.player,t=this.run.time,family=Math.floor((p.speciesId-1)/3);
     const moving=clamp(p.speedNow/6),phase=p.animT*Math.PI*2;
@@ -168,7 +173,7 @@ export class GlyphHero {
     // ricochet and world-origin attacks retain their existing spawn points.
     if(!this.ready||!this.select(p.speciesId)||p.dead||(shot.flags&1)||shot.from>=0||
       !(shot.slot>=0)||Math.hypot(shot.x-p.pos.x,shot.z-p.pos.z)>.35||Math.abs(shot.y-p.pos.y)>1.8)return shot;
-    const side=this.side;this.release[side<0?0:1]=this.run.time;this.side=-side;
+    const side=this.side;this.release[side<0?0:1]=this.run.time;this.side=-side;this.poseRevision++;
     const origin=this.hand(side),result={...shot};
     // Arcing shots already solve a ballistic landing position: animate their
     // cast but leave that trajectory intact.
@@ -187,22 +192,27 @@ export class GlyphHero {
   render(sprite,flash,fade,outline,squash,tint,look){
     const p=this.run.player;
     if(!this.ready||!this.select(p.speciesId)){this.mesh.visible=false;return false;}
-    this.pose=this.sample();const pose=this.pose;
-    const key=JSON.stringify(pose);
-    if(key!==this.drawKey){
-      this.drawKey=key;const ctx=this.ctx,points=this.path.points;
-      const at=i=>{const [,x,y]=points[i],[px,py]=this.deform(x,y,pose,this.contours[i]);return [(px+.5)*400+56,512-(py*400+56)];};
-      ctx.clearRect(0,0,512,512);ctx.beginPath();
-      for(let i=0;i<points.length;i++){
-        const type=points[i][0]&7;
-        if(type===0)ctx.moveTo(...at(i));
-        else if(type===1)ctx.lineTo(...at(i));
-        else if(type===3){ctx.bezierCurveTo(...at(i),...at(i+1),...at(i+2));i+=2;}
-        if(points[i][0]&128)ctx.closePath();
+    const due=!this.drawKey||this.drawRevision!==this.poseRevision||this.run.time-this.drawAt>=this.poseInterval-1e-6||this.run.time<this.drawAt;
+    if(due){
+      this.pose=this.sample();const pose=this.pose;
+      const key=JSON.stringify(pose);
+      if(key!==this.drawKey){
+        this.drawKey=key;const ctx=this.ctx,points=this.path.points;
+        const at=i=>{const [,x,y]=points[i],[px,py]=this.deform(x,y,pose,this.contours[i]);return [(px+.5)*400+56,512-(py*400+56)];};
+        const scale=this.canvas.width/512;
+        ctx.clearRect(0,0,this.canvas.width,this.canvas.height);ctx.save();ctx.scale(scale,scale);ctx.beginPath();
+        for(let i=0;i<points.length;i++){
+          const type=points[i][0]&7;
+          if(type===0)ctx.moveTo(...at(i));
+          else if(type===1)ctx.lineTo(...at(i));
+          else if(type===3){ctx.bezierCurveTo(...at(i),...at(i+1),...at(i+2));i+=2;}
+          if(points[i][0]&128)ctx.closePath();
+        }
+        ctx.lineWidth=12.5;ctx.lineJoin='round';ctx.lineCap='round';
+        ctx.strokeStyle='#121d22';ctx.stroke();ctx.fillStyle=this.art.color;ctx.fill();
+        ctx.restore();this.texture.needsUpdate=true;this.textureUpdates++;
       }
-      ctx.lineWidth=12.5;ctx.lineJoin='round';ctx.lineCap='round';
-      ctx.strokeStyle='#121d22';ctx.stroke();ctx.fillStyle=this.art.color;ctx.fill();
-      this.texture.needsUpdate=true;
+      this.drawAt=this.run.time;this.drawRevision=this.poseRevision;
     }
     this.mesh.visible=true;
     const u=this.material.uniforms;

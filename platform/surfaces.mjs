@@ -45,7 +45,12 @@ export function installSurfaces(D,doc,host,view) {
         if(type==='2d'&&typeof v!=='function'&&Object.hasOwn(pathFallbacks,k))v=pathFallbacks[k];
         if(typeof v!=='function')return v;
         if(!cache[k]){
-          if(['drawImage','createPattern','texImage2D','texSubImage2D','texImage3D','texSubImage3D','copyImageSubData'].includes(k))
+          // WeChat ignores browser color-space conversion and otherwise logs
+          // a warning for every atlas upload. Other pixel-store state matters.
+          if(type!=='2d'&&k==='pixelStorei')cache[k]=(name,value)=>{
+            if(name!==0x9243)return v.call(native,name,value); // UNPACK_COLORSPACE_CONVERSION_WEBGL
+          };
+          else if(['drawImage','createPattern','texImage2D','texSubImage2D','texImage3D','texSubImage3D','copyImageSubData'].includes(k))
             cache[k]=(...args)=>v.apply(native,args.map(a=>a?._surface||a));
           else if(['fill','stroke','clip','isPointInPath'].includes(k))cache[k]=(...args)=>{
             if(args[0] instanceof CanvasPath){args.shift().trace(native);}return v.apply(native,args);
@@ -77,7 +82,7 @@ export function installSurfaces(D,doc,host,view) {
   function setImage(el,src) {
     src=String(src);if(el._src===src)return;el._src=src;el._ready=false;
     const image=wx.createImage();el._surface=image;
-    const finish=ok=>{if(image!==el._surface)return;el._ready=ok;el.dispatchEvent(new D.Event(ok?'load':'error'));};
+    const finish=ok=>{if(image!==el._surface)return;el._ready=ok;el.dispatchEvent(new D.Event(ok?'load':'error'));host.invalidateUI?.();};
     image.onload=()=>finish(true);image.onerror=()=>finish(false);
     const embedded=LocalURL.objectFiles?.get(src);
     if(embedded)image.src=embedded;

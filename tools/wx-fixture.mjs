@@ -49,6 +49,11 @@ function nativeCanvas(){
 function canvas(){const el=nativeCanvas();if(first){first=false;screen=el;document.body.appendChild(el);}return el;}
 const imageSrc=Object.getOwnPropertyDescriptor(HTMLImageElement.prototype,'src');
 globalThis.GameGlobal={};
+window.fixtureTimerCalls={};
+for(const name of ['setTimeout','clearTimeout','setInterval','clearInterval','requestAnimationFrame','cancelAnimationFrame']){
+  const native=window[name].bind(window);
+  GameGlobal[name]=(...args)=>{window.fixtureTimerCalls[name]=(window.fixtureTimerCalls[name]||0)+1;return native(...args);};
+}
 Object.defineProperty(GameGlobal,'ziling',{get(){return window.__host;},set(host){
   window.__host=host;host.inspect=s=>{
     window.inspected=s;
@@ -70,6 +75,11 @@ globalThis.wx={
   getMenuButtonBoundingClientRect:()=>window.phoneLayout?{left:innerWidth-106,right:innerWidth-16,top:4,bottom:32}:undefined,
   onWindowResize:fn=>window.addEventListener('resize',fn),
   getLaunchOptionsSync:()=>({query:window.fixtureLaunchQuery||{}}),
+  getAccountInfoSync:()=>({miniProgram:{envVersion:window.fixtureEnvVersion||'develop'}}),
+  getAppBaseInfo:()=>({enableDebug:!!window.fixtureDebugEnabled,version:window.fixtureWechatVersion||'8.0.68',SDKVersion:'3.17.5'}),
+  getDeviceInfo:()=>({platform:window.fixturePlatform||'android',system:window.fixturePlatform==='ios'?'iOS 18.6':'Android 14'}),
+  onError:fn=>window.fixtureNativeError=fn,onUnhandledRejection:fn=>window.fixtureNativeRejection=fn,
+  setEnableDebug(options){window.fixtureDebugCalls=(window.fixtureDebugCalls||0)+1;window.fixtureDebugEnabled=options.enableDebug;options.success?.({});},
   showShareMenu(){},onShareAppMessage(fn){window.fixtureShareMenu=fn;},
   shareAppMessage(options){window.fixtureShare=options;},
   setClipboardData({data,success}){window.fixtureClipboard=data;success?.({});},
@@ -82,8 +92,22 @@ globalThis.wx={
   }});return img;},
   loadFont(path){const family=path.includes('bold')?'Bold'+path.slice(-10):'Face'+path.slice(-14,-4);
     const face=new FontFace(family,bytes(path));document.fonts.add(face);face.load().catch(console.error);return family;},
-  createWebAudioContext:()=>new AudioContext(),getStorageSync:k=>localStorage.getItem(k)||'',setStorageSync:(k,v)=>localStorage.setItem(k,v),removeStorageSync:k=>localStorage.removeItem(k),
+  createWebAudioContext(){
+    const context=new AudioContext(),decode=context.decodeAudioData.bind(context);
+    const stats=window.fixtureAudioStats||(window.fixtureAudioStats={calls:0,decoded:0,failed:0});
+    Object.defineProperty(context,'decodeAudioData',{value(data,success,failure){
+      stats.calls++;
+      const pending=window.fixtureAudioDecodeFailure?Promise.reject(Error('test: unsupported audio codec')):decode(data);
+      pending.then(buffer=>{stats.decoded++;success?.(buffer);},error=>{stats.failed++;failure?.(error);});
+      // Deliberately return undefined, just like the callback-only phone API.
+    }});
+    return context;
+  },getStorageSync:k=>localStorage.getItem(k)||'',setStorageSync:(k,v)=>localStorage.setItem(k,v),removeStorageSync:k=>localStorage.removeItem(k),
   connectSocket(options){
+    if(window.fixtureRequireDebug&&!window.fixtureDebugEnabled){
+      queueMicrotask(()=>options.fail?.({errMsg:'connectSocket:fail url not in domain list'}));
+      return {onOpen(){},onMessage(){},onError(){},onClose(){},close(){},send(){}};
+    }
     const socket=new WebSocket(options.url),handlers={};socket.binaryType='arraybuffer';
     (window.fixtureSockets||(window.fixtureSockets=[])).push(socket);
     socket.onopen=()=>handlers.open?.();socket.onmessage=e=>handlers.message?.({data:e.data});
@@ -92,7 +116,7 @@ globalThis.wx={
       send({data,success,fail,complete}){try{socket.send(data);success?.();}catch(e){fail?.(e);}finally{complete?.();}},
       close(){socket.close();}};
   },
-  showLoading(o){window.loadingTitle=o.title;},hideLoading(){window.loadingTitle=null;},showModal(o){window.problem=o.content;console.error('WX MODAL',o.content);},
+  showLoading(o){window.loadingTitle=o.title;(window.fixtureLoadingTitles||=[]).push(o.title);},hideLoading(){window.loadingTitle=null;},showModal(o){window.problem=o.content;console.error('WX MODAL',o.content);},
   loadSubpackage(o){
     let notify;
     (async()=>{try{

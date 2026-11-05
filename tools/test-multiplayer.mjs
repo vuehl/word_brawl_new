@@ -83,3 +83,27 @@ test('version mismatch, oversized packets and invalid JSON are rejected',async()
   ws.send(JSON.stringify({op:'create',id:1,species:4,protocol:1,build:'old'}));assert.match((await reply).error,/版本不一致/);ws.close();
   for(const payload of ['{broken','x'.repeat(70*1024)]){const socket=await raw();const closed=new Promise(resolve=>socket.onclose=resolve);socket.send(payload);await closed;}
 });
+
+test('The existing Go relay carries scene readiness and a common start without leaking startup packets into combat', {timeout:12000},async()=>{
+  const host=await connect(),guest=await connect({code:host.code,factory:wxFactory});
+  await host.setReady(true);await guest.setReady(true);await host.start();
+  await until(()=>guest.startGate);
+  let leaked=0,hostAt,guestAt;host.ev.ctl=guest.ev.ctl=()=>leaked++;
+  const waiting=host.waitForBattleStart().then(()=>{hostAt=Date.now();});
+  await delay(500);assert.equal(hostAt,undefined);assert.equal(host.startGate.at,undefined);
+  const following=guest.waitForBattleStart().then(()=>{guestAt=Date.now();});
+  await Promise.all([waiting,following]);
+  assert.equal(host.startGate.at,guest.startGate.at);assert.ok(Math.abs(hostAt-guestAt)<250);
+  assert.equal(leaked,0);
+  await host.leave();await guest.leave();
+});
+
+test('A peer failure cancels a pending scene load through the existing relay', {timeout:5000},async()=>{
+  const host=await connect(),guest=await connect({code:host.code});
+  await host.setReady(true);await guest.setReady(true);await host.start();
+  await until(()=>guest.startGate);
+  const stalled=host.duringLoading(new Promise(()=>{}));
+  guest.cancelStart('战斗纹理加载失败');
+  await assert.rejects(stalled,/纹理加载失败/);assert.equal(host.startGate.local,false);
+  await host.leave();await guest.leave();
+});

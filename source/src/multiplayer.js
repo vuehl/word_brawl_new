@@ -1,12 +1,20 @@
 import {multiplayerConfig} from './multiplayer-config.js';
+import {CoopStart} from './coop-start.js';
+
+function socketErrorDetail(error) {
+  const message = typeof error === 'string' ? error : error?.errMsg || error?.message || error?.reason || '';
+  const code = error?.errCode;
+  const detail = String(message).replace(/[\r\n\t]+/g, ' ').slice(0, 300);
+  return (detail ? ' 微信返回：' + detail : '') + (code !== undefined ? '（错误码 ' + String(code).slice(0, 24) + '）' : '');
+}
 
 export function browserSocket(url, events) {
   const ws = new WebSocket(url);
   ws.binaryType = 'arraybuffer';
   ws.onopen = () => events.open();
   ws.onmessage = event => events.message(event.data);
-  ws.onerror = () => events.error();
-  ws.onclose = () => events.close();
+  ws.onerror = event => events.error(event);
+  ws.onclose = event => events.close(event);
   return {
     send(data, disposable = false) {
       if (ws.readyState !== 1) return false;
@@ -42,9 +50,19 @@ export class RelayRoom {
         session.socket = factory(url, {
           open() { clearTimeout(session.connectTimer); session.connectReject = null; resolve(); },
           message(data) { session.receive(data); },
-          error() { session.end('无法连接联机服务：请检查服务地址、同一内网、防火墙和微信调试模式'); },
-          close() { session.end('与联机服务的连接已断开，请返回首页重新组队'); },
+          error(error) {
+            const detail = socketErrorDetail(error);
+            const reason = /url\s+not\s+in\s+domain\s+list|不在.*合法域名/i.test(detail)
+              ? '微信域名校验未通过：联机地址不在 socket 合法域名中。请确认手机与服务器同网段，或在预览版开启手机调试后重试。'
+              : '无法连接联机服务。先确认手机浏览器能打开服务器的 /healthz，再检查手机调试模式和本地网络权限。';
+            session.end(reason + detail);
+          },
+          close(event) { session.end('与联机服务的连接已断开，请重新组队。' + socketErrorDetail(event)); },
         });
+        // wx may reject a URL before connectSocket returns its SocketTask.
+        // Close the returned transport even when that synchronous error has
+        // already ended the session and rejected this promise.
+        if (!session.alive) session.socket?.close();
       });
       await session.request(code ? 'join' : 'create', {code, name, species, protocol: multiplayerConfig.protocol, build: multiplayerConfig.build});
       session.pongAt = Date.now();
@@ -75,9 +93,14 @@ export class RelayRoom {
     if (!room || !Array.isArray(room.members)) return;
     const previous = this.room.members;
     this.room = room;
+    this.startGate?.checkRoom(room);
     for (const member of previous) if (!room.members.some(next => next.id === member.id)) this.ev.link?.(member.id, 'closed');
     this.ev.change?.();
-    if (room.state === 'started' && !this.startedSeen) { this.startedSeen = true; this.ev.start?.(room); }
+    if (room.state === 'started' && !this.startedSeen) {
+      this.startedSeen = true;
+      this.startGate=new CoopStart({me:this.me,host:room.host,members:room.members,party:room.party,send:(to,data)=>this.control(to,data)});
+      this.ev.start?.(room);
+    }
   }
   receive(raw) {
     if (!this.alive) return;
@@ -91,7 +114,10 @@ export class RelayRoom {
     if (message.op === 'pong') { this.pongAt = Date.now(); this.roundTrip = this.pongAt - (this.pingAt || this.pongAt); return; }
     if (message.op === 'closed') { this.end(message.reason); return; }
     if (message.op === 'room') { this.apply(message.room); return; }
-    if (message.op === 'ctl') { if (this.others.some(member => member.id === message.from)) this.ev.ctl?.(message.from, message.data); return; }
+    if (message.op === 'ctl') {
+      if(this.others.some(member=>member.id===message.from)&&!this.startGate?.receive(message.from,message.data))this.ev.ctl?.(message.from,message.data);
+      return;
+    }
     if (message.op !== 'reply') return;
     const pending = this.pending.get(message.id);
     if (!pending) return;
@@ -112,9 +138,22 @@ export class RelayRoom {
   setSettings(_biome, tier) { return this.request('settings', {tier}); }
   kick(to) { return this.request('kick', {to}); }
   start() { return this.request('start'); }
+  waitForBattleStart(progress) {
+    return this.startGate?this.startGate.ready(progress):Promise.reject(Error('开局同步尚未建立，请重新组队'));
+  }
+  duringLoading(work) {
+    this.checkStart();
+    return this.startGate?Promise.race([work,this.startGate.promise]):work;
+  }
+  checkStart() {
+    if(!this.alive)throw Error('连接已断开，请重新组队');
+    if(this.startGate?.error)throw this.startGate.error;
+  }
+  cancelStart(reason) { this.startGate?.cancel(reason); }
   leave() { this.send({op: 'leave'}); this.end('已离开房间', false); return Promise.resolve(); }
   end(reason = '房间已关闭', notify = true) {
     if (!this.alive) return;
+    this.startGate?.cancel(reason);
     this.alive = false; clearInterval(this.heartbeat); clearTimeout(this.connectTimer);
     this.connectReject?.(Error(reason)); this.connectReject = null;
     for (const pending of this.pending.values()) { clearTimeout(pending.timer); pending.reject(Error(reason)); }

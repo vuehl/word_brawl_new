@@ -14,6 +14,7 @@ import {createFetch,Headers,Request,Response,Blob} from './http.mjs';
 import {createLayout} from './layout.mjs';
 import {readUIAssets} from './reference.mjs';
 import {paint,compositor} from './paint.mjs';
+import {touchOverlay} from './touch-overlay.mjs';
 import {installSurfaces} from './surfaces.mjs';
 import {CanvasPath} from './path.mjs';
 import {cloneData} from './clone.mjs';
@@ -21,6 +22,11 @@ import {initCrypto,random} from './crypto.mjs';
 import {dispatchApi} from 'ziling:api';
 import {wechatSocket} from './socket.mjs';
 import {installInvites} from './invites.mjs';
+import {installCoopDebug} from './coop-debug.mjs';
+import {wechatAudioContext} from './audio.mjs';
+import {installRunLoading} from './run-loading.mjs';
+import {graphicsProfile,uiScale,uiSchedule} from './graphics-profile.mjs';
+import {framePerformance} from './frame-performance.mjs';
 
 class InputEvent extends D.Event {
   constructor(type,options={}){super(type,{bubbles:options.bubbles!==false,cancelable:true});Object.assign(this,options);}
@@ -52,20 +58,32 @@ function viewport(info) {
   }catch{} // Some runtimes do not expose a capsule rectangle.
   return {w:right-left,h:bottom-top,x:left,y:top,width,height,dpr:info.pixelRatio||1};
 }
-const uiScale=view=>Math.min(view.dpr,3,Math.sqrt(3500000/(view.width*view.height)));
 export async function setup(host) {
+  const {setTimeout,clearTimeout,setInterval,clearInterval,requestAnimationFrame,cancelAnimationFrame}=host.timers;
   await initCrypto();
   const {document:doc}=D.parseHTML('<!doctype html><html><head></head><body><canvas id="game"></canvas><div id="ui"></div></body></html>');
   const win=new D.EventTarget(),system=wx.getWindowInfo?wx.getWindowInfo():wx.getSystemInfoSync();
   const view=viewport(system);
+  const runtime=host.runtime.snapshot();
+  const graphics=graphicsProfile({platform:runtime.platform},runtime.mode==='iOS 高性能模式');
+  const schedule=uiSchedule(graphics);
   const {Image,makeCanvas,screen}=installSurfaces(D,doc,host,view);
-  let scale=uiScale(view);const uiCanvas=makeCanvas();uiCanvas.width=Math.round(view.width*scale);uiCanvas.height=Math.round(view.height*scale);
+  let scale=uiScale(view,graphics);const uiCanvas=makeCanvas();uiCanvas.width=Math.round(view.width*scale);uiCanvas.height=Math.round(view.height*scale);
   const fonts={};
   for(const weight of ['regular','bold'])fonts[weight]=wx.loadFont(host.files.pathFor('fonts/'+weight+'.ttf'))||'sans-serif';
   host.fonts=fonts;
   const uiAssets=readUIAssets(host.files);
   let layout=createLayout(doc,view,uiCanvas,fonts,uiAssets);
-  let draw=null,last=-Infinity,dirty=true,active=null,captured=new Map(),pointers=new Map();
+  const drawTouch=touchOverlay(makeCanvas);
+  let draw=null,dirty=true,lastUICost=0,frameScene,active=null,captured=new Map(),pointers=new Map();
+  const observer=new doc.defaultView.MutationObserver(records=>{
+    if(records.some(record=>{
+      const el=record.target.nodeType===1?record.target:record.target.parentElement;
+      return !el?.closest?.('.tc-stick');
+    }))schedule.invalidate();
+  });
+  observer.observe(doc.body,{subtree:true,childList:true,attributes:true,characterData:true});
+  host.invalidateUI=()=>schedule.invalidate(true);
   const property=(key,get,set)=>Object.defineProperty(D.Element.prototype,key,{configurable:true,get,set});
   function rect(el) {
     const box=el===screen?{x:-view.x,y:-view.y,w:view.width,h:view.height}:
@@ -112,6 +130,7 @@ export async function setup(host) {
   function computed(el){return new Proxy(el.style,{get(t,k){if(k==='getPropertyValue')return key=>layout.box(el)?.s[key]||t.getPropertyValue(key)||'';
     const key=String(k).replace(/[A-Z]/g,m=>'-'+m.toLowerCase());return layout.box(el)?.s[key]||t.getPropertyValue(key)||(k==='gridTemplateColumns'?'1fr':'');}});}
   function show(hide){
+    frames.reset();
     doc.hidden=hide;doc.visibilityState=hide?'hidden':'visible';doc.dispatchEvent(new D.Event('visibilitychange'));win.dispatchEvent(new D.Event(hide?'pagehide':'pageshow'));
     if(hide){
       for(const [id,p] of pointers)(captured.get(id)||p.target).dispatchEvent(new InputEvent('pointercancel',{pointerId:id,pointerType:'touch'}));
@@ -129,7 +148,7 @@ export async function setup(host) {
   wx.onKeyboardConfirm?.(r=>{if(active){active.value=r.value;active.dispatchEvent(new InputEvent('change'));active.blur();}wx.hideKeyboard?.({});});
   function setRange(el,x){const b=rect(el),lo=+(el.min||0),hi=+(el.max||100),step=+(el.step||1);el.value=String(lo+Math.round(Math.max(0,Math.min(1,(x-b.x)/b.width))*(hi-lo)/step)*step);el.dispatchEvent(new InputEvent('input'));}
   function touches(kind,event){
-    dirty=true;
+    if(kind!=='move')dirty=true;
     const local=t=>{
       const x=(t.clientX??t.pageX??t.screenX)-view.x,y=(t.clientY??t.pageY??t.screenY)-view.y;
       return {...t,identifier:t.identifier,clientX:x,clientY:y,pageX:x,pageY:y};
@@ -145,6 +164,7 @@ export async function setup(host) {
       }
       if(!p)continue;
       const target=captured.get(id)||p.target,options={pointerId:id,pointerType:'touch',clientX:x,clientY:y,pageX:x,pageY:y,button:0,buttons:kind==='up'?0:1,isPrimary:pointers.keys().next().value===id,bubbles:true};
+      if(kind==='move'&&!target.closest?.('.tc'))dirty=true;
       if(kind==='move'&&p.target.type!=='range'){
         for(let sc=p.target;sc;sc=sc.parentElement){
           if(sc._scrollMax>0&&/auto|scroll/.test([layout.box(sc)?.s.overflow,layout.box(sc)?.s['overflow-y']].join(' '))&&Math.abs(y-p.y)>5){
@@ -177,20 +197,19 @@ export async function setup(host) {
   }
   wx.onTouchStart(e=>touches('down',e));wx.onTouchMove(e=>touches('move',e));wx.onTouchEnd(e=>touches('up',e));wx.onTouchCancel(e=>touches('cancel',e));
   const fetch=createFetch(host.files,dispatchApi);
-  const raf=typeof requestAnimationFrame==='function'?requestAnimationFrame.bind(globalThis):fn=>setTimeout(()=>fn(Date.now()),16);
+  const raf=requestAnimationFrame;
   const perf=typeof performance!=='undefined'?performance:{now:Date.now};
+  const frames=framePerformance(()=>perf.now(),value=>host.runtime.setPerformance(value));
   const env=Object.assign(win,{...D,document:doc,Image,HTMLVideoElement:D.HTMLVideoElement,location:loc,history,localStorage,sessionStorage:storage('ziling.session.'),
     Blob,URL:LocalURL,URLSearchParams:Params,fetch,Request,Headers,Response,AbortController,AbortSignal,TextDecoder,TextEncoder,createImageBitmap:undefined,ImageBitmap:undefined,OffscreenCanvas:undefined,
     ProgressEvent:InputEvent,MouseEvent:InputEvent,KeyboardEvent:InputEvent,PointerEvent:InputEvent,Path2D:CanvasPath,MutationObserver:doc.defaultView.MutationObserver,
     innerWidth:view.w,innerHeight:view.h,devicePixelRatio:view.dpr,uiPixelRatio:scale,screen:{width:view.w,height:view.h,orientation:{type:'landscape-primary',lock:()=>Promise.resolve()}},
-    mobileGraphics:{maxRatio:2.5,maxPixels:2600000,minRatio:1.5},
+    mobileGraphics:graphics,
     navigator:{userAgent:'MicroMessenger MiniGame',language:'zh-CN',languages:['zh-CN'],maxTouchPoints:5,getGamepads:()=>[],onLine:true},
-    AudioContext:wx.createWebAudioContext?class {constructor(){return wx.createWebAudioContext();}}:undefined,
+    AudioContext:wx.createWebAudioContext?class {constructor(){return wechatAudioContext(wx);}}:undefined,
     crypto:{getRandomValues(a){new Uint8Array(a.buffer,a.byteOffset,a.byteLength).set(random(a.byteLength));return a;}},
     structuredClone:cloneData,
-    getComputedStyle:computed,matchMedia,setTimeout:(...args)=>setTimeout(...args),clearTimeout:id=>clearTimeout(id),
-    setInterval:(...args)=>setInterval(...args),clearInterval:id=>clearInterval(id),performance:perf,requestAnimationFrame:raf,
-    cancelAnimationFrame:typeof cancelAnimationFrame==='function'?cancelAnimationFrame:clearTimeout,
+    getComputedStyle:computed,matchMedia,setTimeout,clearTimeout,setInterval,clearInterval,performance:perf,requestAnimationFrame:raf,cancelAnimationFrame,
     addEventListener:win.addEventListener.bind(win),removeEventListener:win.removeEventListener.bind(win),dispatchEvent:win.dispatchEvent.bind(win),
     alert:msg=>wx.showModal({title:'字灵',content:String(msg),showCancel:false}),open:()=>null,
     prepareForest:host.files.prepareForest,
@@ -200,22 +219,39 @@ export async function setup(host) {
       wx.showModal({title:'森林未能打开',content:String(error?.message||error),showCancel:false,
         confirmText:restart?'重新进入':'退出游戏',success:()=>restart?wx.restartMiniProgram({}):wx.exitMiniProgram({})});
     },
-    drawUI(renderer){
-      const now=perf.now(),changed=dirty||now-last>=80||!draw;
-      if(changed){paint(layout,layout.refresh(env.__pb?.run?.state),view,scale);last=now;dirty=false;}
+    drawUI(renderer,run=env.__pb?.run){
+      const began=perf.now();
+      const state=run?.state,touch=run?.ui?.touch;
+      if(dirty||!draw)schedule.invalidate(true);
+      const changed=schedule.shouldPaint(perf.now(),state);
+      if(changed){
+        const boxes=layout.refresh(state);
+        paint(layout,touch?.shown?boxes.filter(b=>b.el!==touch.stick&&!touch.stick.contains(b.el)):boxes,view,scale);
+        dirty=false;
+      }
       if(!draw)draw=compositor(renderer.getContext(),uiCanvas);draw(renderer,changed);
+      drawTouch(renderer,layout,touch,view,scale,changed);
+      lastUICost=perf.now()-began;
+    },
+    recordFramePerformance(sim,draw,r,state){
+      const scene=state==='play'?'battle':state==null?'home':null;
+      if(doc.hidden||!scene||scene!==frameScene){frames.reset();frameScene=scene;return;}
+      frames.record(sim,draw,lastUICost,()=>({scene,profile:graphics.name,world:[r.composer.inputBuffer.width,r.composer.inputBuffer.height],
+        ui:[uiCanvas.width,uiCanvas.height],drawCalls:r.renderer.info.render.calls}));
     },
     locale,readLocale(lang){const p=host.files.pathFor('locale/'+lang+'.json');return p?JSON.parse(fs.readFileSync(p,'utf8')):{};},
   });
   env.window=env.self=env.globalThis=env;
+  installRunLoading(env,host.runtime,host.timers);
   installInvites(wx,env);
+  installCoopDebug(wx,env);
   wx.onWindowResize?.(()=>{
     const info=wx.getWindowInfo?wx.getWindowInfo():wx.getSystemInfoSync();
     Object.assign(view,viewport(info));
     env.innerWidth=env.screen.width=view.w;env.innerHeight=env.screen.height=view.h;
     env.devicePixelRatio=view.dpr;
-    scale=env.uiPixelRatio=uiScale(view);uiCanvas.width=Math.round(view.width*scale);uiCanvas.height=Math.round(view.height*scale);
-    layout=createLayout(doc,view,uiCanvas,fonts,uiAssets);dirty=true;env.dispatchEvent(new D.Event('resize'));
+    scale=env.uiPixelRatio=uiScale(view,graphics);uiCanvas.width=Math.round(view.width*scale);uiCanvas.height=Math.round(view.height*scale);
+    layout.dispose();layout=createLayout(doc,view,uiCanvas,fonts,uiAssets);dirty=true;env.dispatchEvent(new D.Event('resize'));
   });
   if(host.inspect)host.inspect({env,doc,get layout(){return layout;},touches,uiCanvas});
   return env;

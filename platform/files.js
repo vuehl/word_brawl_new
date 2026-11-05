@@ -1,4 +1,5 @@
 // The boot canvas must be the first canvas created by the mini game.
+const {setTimeout,clearTimeout} = require('./timers');
 const fs = () => wx.getFileSystemManager();
 const info = require('./assets');
 const {expandResources,packedInputs} = require('./resource-codec');

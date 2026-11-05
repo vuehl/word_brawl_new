@@ -1,13 +1,16 @@
 'use strict';
 
+let runtimeTimers;
+let runtimeInfo;
+
 async function withTimeout(work, ms, message) {
   let timer;
   try {
     return await Promise.race([work, new Promise((_, reject) => {
-      timer = setTimeout(() => reject(Error(message)), ms);
+      timer = runtimeTimers.setTimeout(() => reject(Error(message)), ms);
     })]);
   } finally {
-    clearTimeout(timer);
+    runtimeTimers.clearTimeout(timer);
   }
 }
 
@@ -55,6 +58,7 @@ async function start() {
   let phase = '创建画面', splash, shown = 0;
   function stage(title) {
     phase = title;
+    if (runtimeInfo) { runtimeInfo.stage(title); runtimeInfo.loading(title); }
     console.info('[字灵启动]', title, Date.now() - began, 'ms');
   }
   function showProgress(value, renderer) {
@@ -71,6 +75,9 @@ async function start() {
     }
   }
   try {
+    runtimeInfo = require('./runtime-info')(wx,GameGlobal);
+    runtimeInfo.loading('正在启动游戏');
+    runtimeTimers = require('./timers');
     stage('字灵 · 打开森林');
     const canvas = wx.createCanvas();
     const view = wx.getWindowInfo ? wx.getWindowInfo() : wx.getSystemInfoSync();
@@ -88,12 +95,13 @@ async function start() {
       console.warn('[字灵启动] 启动画面不可用', error);
     }
     const files = require('./files');
-    const host = GameGlobal.ziling = {canvas, files};
+    const host = GameGlobal.ziling = {canvas, files, timers:runtimeTimers, runtime:runtimeInfo};
     stage('准备游戏资源');
     const downloaded = {play:0, text:0};
     function packageProgress(name, percent) {
       if (!Number.isFinite(percent)) return;
       downloaded[name] = Math.max(downloaded[name], Math.min(100, percent));
+      runtimeInfo.loading('加载游戏 '+Math.floor((downloaded.play+downloaded.text)/2)+'%');
       // Reserve the last 15% for unpacking, entry registration and the first rendered home frame.
       showProgress(5 + Math.floor((45 * downloaded.play + 35 * downloaded.text) / 100));
     }
@@ -108,14 +116,17 @@ async function start() {
     stage('绘制游戏首页');
     showProgress(90);
     await withTimeout(launchEngine(host,play,showProgress), 60000, '游戏首页未能在限时内绘制，请重新进入。');
+    runtimeInfo.stage('游戏首页');
     console.info('[字灵启动] 游戏首页已绘制', Date.now() - began, 'ms');
   } catch (error) {
+    if (runtimeInfo) runtimeInfo.record(error,'启动游戏');
     console.error('[字灵] ' + phase + '失败', error);
     const restart = typeof wx.restartMiniProgram === 'function';
     wx.showModal({title:phase + '失败', content:(error && (error.errMsg || error.message)) || String(error),
       confirmText:restart ? '重新进入' : '退出游戏', showCancel:false,
       success:() => restart ? wx.restartMiniProgram({}) : wx.exitMiniProgram({})});
   } finally {
+    if (runtimeInfo) runtimeInfo.hideLoading();
     if (splash) splash.dispose();
     splash = null;
   }

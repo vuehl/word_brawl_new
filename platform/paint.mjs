@@ -40,7 +40,7 @@ export function paint(layout,boxes,view,scale) {
     if(tag==='#text'){
       ctx.font=layout.font(s);ctx.fillStyle=s.color||'#2a2440';ctx.textBaseline='middle';
       const text=el.textContent.replace(/\s+/g,' ').trim();
-      const lines=b.singleLine?[text]:layout.wrap(text,w,s),lh=h/Math.max(1,lines.length);
+      const lines=b.singleLine?[text]:layout.wrap(text,w,s,ctx),lh=h/Math.max(1,lines.length);
       const side=s['text-align'];ctx.textAlign=side==='center'?'center':side==='right'?'right':'left';
       const tx=side==='center'?x+w/2:side==='right'?x+w:x;
       lines.forEach((l,i)=>ctx.fillText(l,tx,y+(i+.5)*lh,w));
@@ -74,14 +74,23 @@ export function compositor(gl,canvas) {
   gl.attachShader(prog,shader(gl.FRAGMENT_SHADER,'#version 300 es\nprecision mediump float;in vec2 uv;out vec4 color;uniform sampler2D ui;void main(){color=texture(ui,uv);}'));
   gl.linkProgram(prog);if(!gl.getProgramParameter(prog,gl.LINK_STATUS))throw Error(gl.getProgramInfoLog(prog));
   const texture=gl.createTexture(),vao=gl.createVertexArray();
-  return (renderer,changed)=>{
-    renderer.resetState();gl.bindFramebuffer(gl.FRAMEBUFFER,null);gl.viewport(0,0,gl.drawingBufferWidth,gl.drawingBufferHeight);
+  let width=0,height=0;
+  gl.bindTexture(gl.TEXTURE_2D,texture);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
+  return (renderer,changed,rect)=>{
+    renderer.resetState();gl.bindFramebuffer(gl.FRAMEBUFFER,null);
+    if(rect){
+      const sx=gl.drawingBufferWidth/rect.screenWidth,sy=gl.drawingBufferHeight/rect.screenHeight;
+      gl.viewport(Math.round(rect.x*sx),Math.round((rect.screenHeight-rect.y-rect.h)*sy),Math.round(rect.w*sx),Math.round(rect.h*sy));
+    }else gl.viewport(0,0,gl.drawingBufferWidth,gl.drawingBufferHeight);
     gl.useProgram(prog);gl.bindVertexArray(vao);gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,texture);
     if(changed){
-      gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
-      gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
       gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,false);gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL,true);
-      gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,canvas);
+      if(width!==canvas.width||height!==canvas.height){
+        gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,canvas);
+        width=canvas.width;height=canvas.height;
+      }else gl.texSubImage2D(gl.TEXTURE_2D,0,0,0,gl.RGBA,gl.UNSIGNED_BYTE,canvas);
     }
     gl.disable(gl.DEPTH_TEST);gl.disable(gl.CULL_FACE);gl.disable(gl.SCISSOR_TEST);gl.depthMask(false);
     gl.enable(gl.BLEND);gl.blendFunc(gl.ONE,gl.ONE_MINUS_SRC_ALPHA);gl.drawArrays(gl.TRIANGLES,0,3);

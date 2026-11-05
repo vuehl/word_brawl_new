@@ -5,6 +5,11 @@ const edges=[Y.EDGE_TOP,Y.EDGE_RIGHT,Y.EDGE_BOTTOM,Y.EDGE_LEFT], names=['top','r
 const align={'flex-start':Y.ALIGN_FLEX_START,start:Y.ALIGN_FLEX_START,center:Y.ALIGN_CENTER,'flex-end':Y.ALIGN_FLEX_END,end:Y.ALIGN_FLEX_END,stretch:Y.ALIGN_STRETCH,baseline:Y.ALIGN_BASELINE};
 const justify={center:Y.JUSTIFY_CENTER,'space-between':Y.JUSTIFY_SPACE_BETWEEN,'space-around':Y.JUSTIFY_SPACE_AROUND,'space-evenly':Y.JUSTIFY_SPACE_EVENLY,'flex-end':Y.JUSTIFY_FLEX_END,end:Y.JUSTIFY_FLEX_END};
 const replaced=new Set(['img','svg','canvas','input','select','br']);
+const layoutFields=('display position width height min-width min-height max-width max-height aspect-ratio '+
+  'flex flex-grow flex-shrink flex-basis flex-direction flex-wrap align-self align-items place-items justify-content '+
+  'grid-template-columns gap column-gap row-gap padding padding-top padding-right padding-bottom padding-left '+
+  'margin margin-top margin-right margin-bottom margin-left inset top right bottom left border border-top border-right border-bottom border-left '+
+  'font font-weight line-height white-space text-align overflow overflow-x overflow-y').split(' ');
 function parts(s='0'){return s.match(/(?:[^\s(]+(?:\([^)]*\))?|[^\s]+)/g)||['0'];}
 function four(s){const v=parts(s);return [v[0],v[1]??v[0],v[2]??v[0],v[3]??v[1]??v[0]];}
 function clamp(n,lo,hi){return Math.min(hi,Math.max(lo,n));}
@@ -12,26 +17,40 @@ const scrolls=s=>/auto|scroll/.test(s['overflow-y']??s.overflow??'');
 export function createLayout(doc,view,native,fonts,uiAssets) {
   const ctx=native.getContext('2d'),engine=styleEngine(view,uiAssets.rules);
   const ref=readReference(view,uiAssets.layout);
-  let boxes=[],seen=new WeakMap(),metrics={},clampedScroll=false;
+  let boxes=[],seen=new WeakMap(),metrics={},clampedScroll=false,cachedRoot=null,cachedMetrics=null;
+  const liveMetrics={};
   const font=s=>(parseInt(s['font-weight'],10)>=600?'bold ':'')+s.font+'px "'+
     (parseInt(s['font-weight'],10)>=600?fonts.bold:fonts.regular)+'", sans-serif';
-  function wrap(text,max,s) {
+  function wrap(text,max,s,measureContext=ctx) {
     const lines=[];let line='';
     for(const ch of text.trim()){
       if(ch==='\n'&&s['white-space']?.startsWith('pre')){lines.push(line);line='';continue;}
-      if(line&&Number.isFinite(max)&&s['white-space']!=='nowrap'&&ctx.measureText(line+ch).width>max+.5){lines.push(line);line=ch;}
+      if(line&&Number.isFinite(max)&&s['white-space']!=='nowrap'&&measureContext.measureText(line+ch).width>max+.5){lines.push(line);line=ch;}
       else line+=ch;
     }
     if(line)lines.push(line);return lines;
   }
-  function make(el,parent,grid,id=1) {
+  function describe(el,parentStyle) {
     const text=el.nodeType===3,tag=text?'#text':el.localName;
     if(!text&&(el.nodeType!==1||['style','script','head','noscript'].includes(tag)||el.id==='game'))return null;
     if(text&&!el.textContent.trim())return null;
     if(tag==='img'&&!el._src&&el.getAttribute('src'))el.src=el.getAttribute('src');
-    const s=engine.style(el,parent?.s);
+    const s=engine.style(el,parentStyle);
     if(s.display==='none'||s.visibility==='hidden'||text&&s.font===0)return null;
-    const metric=metrics[id],node=Y.Node.create(),item={el,tag,s,node,kids:[],metric},dim=(v,base=view.w)=>length(v,base,view,s.font);
+    return {el,tag,s};
+  }
+  function intrinsic(el,tag){
+    return replaced.has(tag)?[el.getAttribute('width'),el.getAttribute('height'),el.naturalWidth,el.naturalHeight,
+      tag==='canvas'?el.width:0,tag==='canvas'?el.height:0].join('|'):'';
+  }
+  function make(el,parent,grid,id=1) {
+    const description=describe(el,parent?.s);
+    if(!description)return null;
+    const {tag,s}=description,text=tag==='#text';
+    // Captured menu coordinates cannot describe a control that follows a finger.
+    // Its children must also use live geometry, including their centering margins.
+    const live=parent?.live||!text&&el.classList.contains('tc-stick');
+    const metric=live?null:metrics[id],node=Y.Node.create(),item={el,tag,s,node,kids:[],metric,live},dim=(v,base=view.w)=>length(v,base,view,s.font);
     const set=(key,v,base=view.w)=>{
       if(!v||v==='auto'||v==='none'||v==='fit-content'||v==='max-content')return;
       if(/^-?[\d.]+%$/.test(v)&&node['set'+key+'Percent'])node['set'+key+'Percent'](parseFloat(v));
@@ -84,7 +103,7 @@ export function createLayout(doc,view,native,fonts,uiAssets) {
       const row=gridDisplay||(flex?(s['flex-direction']||'row').startsWith('row'):inlineText);
       node.setFlexDirection(row?Y.FLEX_DIRECTION_ROW:Y.FLEX_DIRECTION_COLUMN);
       node.setAlignItems(align[s['align-items']||s['place-items']]??Y.ALIGN_STRETCH);
-      node.setJustifyContent(justify[(s['justify-content']||'').replace('safe ','')]??Y.JUSTIFY_FLEX_START);
+      node.setJustifyContent(justify[(s['justify-content']||(inlineText?s['text-align']:'')||'').replace('safe ','')]??Y.JUSTIFY_FLEX_START);
       const columns=s['grid-template-columns']||'';
       let count=0;
       if(gridDisplay){const match=/repeat\(\s*(\d+)/.exec(columns);count=match?+match[1]:columns?(columns.match(/(?:minmax|repeat)\([^)]*\)|[^\s]+/g)||[]).length:1;}
@@ -104,7 +123,21 @@ export function createLayout(doc,view,native,fonts,uiAssets) {
         node.insertChild(item2.node,item.kids.length);item.kids.push(item2);
       }
     }
+    item.domKids=item.kids.slice();item.text=text?el.textContent:null;item.intrinsic=intrinsic(el,tag);
     return item;
+  }
+  function reuse(item,current){
+    if(!current||item.tag!==current.tag||item.tag!=='#text'&&item.el!==current.el)return false;
+    // The touch layer refreshes its own geometry every rendered frame.
+    if(item.live)return true;
+    const {el,tag,s}=current;
+    if(item.s!==s&&layoutFields.some(key=>item.s[key]!==s[key]))return false;
+    if(item.intrinsic!==intrinsic(el,tag))return false;
+    if(tag==='#text'&&item.text!==el.textContent&&item.metric?.[9]!==1)return false;
+    const children=tag==='#text'||replaced.has(tag)?[]:Array.from(el.childNodes,child=>describe(child,s)).filter(Boolean);
+    if(children.length!==item.domKids.length||!children.every((child,i)=>reuse(item.domKids[i],child)))return false;
+    item.el=el;item.s=s;if(tag==='#text')item.text=el.textContent;
+    return true;
   }
   function record(item,left,top,parentClip,parentWidth,parentHeight,parentMetric,parentOpacity=1) {
     const {el,s,node,metric:m}=item;
@@ -124,8 +157,10 @@ export function createLayout(doc,view,native,fonts,uiAssets) {
       const inset=four(s.inset||'auto'),off=(side,i,size)=>length(s[side]??inset[i],size,view,s.font);
       const l=off('left',3,pw),r=off('right',1,pw),t=off('top',0,ph),bt=off('bottom',2,ph);
       const ox=fixed?0:left,oy=fixed?0:top;
-      if(Number.isFinite(l))x=ox+l;else if(Number.isFinite(r))x=ox+pw-r-w;
-      if(Number.isFinite(t))y=oy+t;else if(Number.isFinite(bt))y=oy+ph-bt-h;
+      if(Number.isFinite(l))x=ox+l+node.getComputedMargin(Y.EDGE_LEFT);
+      else if(Number.isFinite(r))x=ox+pw-r-w-node.getComputedMargin(Y.EDGE_RIGHT);
+      if(Number.isFinite(t))y=oy+t+node.getComputedMargin(Y.EDGE_TOP);
+      else if(Number.isFinite(bt))y=oy+ph-bt-h-node.getComputedMargin(Y.EDGE_BOTTOM);
     }
     if(s.translate&&s.translate!=='none'){const [tx,ty='0']=s.translate.split(/\s+/);x+=length(tx,w,view)||0;y+=length(ty,h,view)||0;}
     const tr=/translate\(\s*([^, )]+)[, ]+\s*([^ )]+)\)/.exec(tf);
@@ -201,18 +236,44 @@ export function createLayout(doc,view,native,fonts,uiAssets) {
     const name=screen?Array.from(screen.classList).find(c=>ref.screens[c]):(runState==='paused'?'paused':'play');
     // Room membership and the new home actions change shape at runtime. Their
     // flow layout must not inherit coordinates captured from the old menu.
-    metrics=screen?.hasAttribute('data-live-layout')?{}:ref.screens[name]||{};
+    metrics=screen?.hasAttribute('data-live-layout')?liveMetrics:ref.screens[name]||liveMetrics;
     // CSS variables on :root are inherited by the body.
     const parent={s:engine.style(doc.documentElement,null)};
-    const root=make(doc.body,parent);root.node.setWidth(view.w);root.node.setHeight(view.h);
-    root.node.calculateLayout(view.w,view.h,Y.DIRECTION_LTR);
+    if(!(cachedRoot&&cachedMetrics===metrics&&reuse(cachedRoot,describe(doc.body,parent.s)))){
+      cachedRoot?.node.freeRecursive();cachedRoot=null;
+      cachedRoot=make(doc.body,parent);cachedMetrics=metrics;
+      cachedRoot.node.setWidth(view.w);cachedRoot.node.setHeight(view.h);
+      cachedRoot.node.calculateLayout(view.w,view.h,Y.DIRECTION_LTR);
+    }
+    const root=cachedRoot;
     const clip={x:0,y:0,r:view.w,b:view.h};
     clampedScroll=false;record(root,0,0,clip,view.w,view.h);
     if(clampedScroll){boxes=[];seen=new WeakMap();record(root,0,0,clip,view.w,view.h);}
-    root.node.freeRecursive();
     return boxes;
   }
   function hit(x,y){for(let i=boxes.length-1;i>=0;i--){const b=boxes[i],c=b.clip;if(b.tag==='#text'||b.s['pointer-events']==='none'||x<c.x||x>c.r||y<c.y||y>c.b)continue;
     if(x>=b.x&&x<=b.x+b.w&&y>=b.y&&y<=b.y+b.h)return b.el;}return doc.body;}
-  return {refresh,hit,box:el=>seen.get(el),font,wrap,context:ctx};
+  function refreshSubtree(el){
+    const parent=seen.get(el.parentElement),start=boxes.findIndex(b=>b.el===el);
+    if(!parent||start<0)return [];
+    let end=start+1;
+    while(end<boxes.length&&el.contains(boxes[end].el))end++;
+    const parentStyle=engine.style(el.parentElement,seen.get(el.parentElement.parentElement)?.s);
+    const previous=boxes,root=make(el,{s:parentStyle,live:true});
+    boxes=[];
+    try {
+      if(root){
+        root.node.calculateLayout(parent.w,parent.h,Y.DIRECTION_LTR);
+        record(root,parent.x,parent.y,parent.clip,parent.w,parent.h,null,parent.opacity);
+      }
+      const updated=boxes;
+      previous.splice(start,end-start,...updated);
+      return updated;
+    } finally {
+      boxes=previous;
+      root?.node.freeRecursive();
+    }
+  }
+  function dispose(){cachedRoot?.node.freeRecursive();cachedRoot=null;boxes=[];seen=new WeakMap();}
+  return {refresh,refreshSubtree,dispose,hit,box:el=>seen.get(el),font,wrap,context:ctx};
 }

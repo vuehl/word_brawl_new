@@ -18,7 +18,8 @@ if (typeof document !== 'undefined') {
   const style=document.createElement('style');
   style.textContent=`
     .coop-lan .coop-panel{width:min(880px,100%);padding:12px 16px;max-height:100%;overflow-y:auto}
-    .coop-lan .lite-map-head>.lite-actions{flex:none;width:206px;margin:0}
+    .coop-lan .lite-map-head>.lite-actions{flex:none;width:258px;margin:0}
+    .coop-lan .lite-map-head .btn{white-space:nowrap;padding-left:6px;padding-right:6px}
     .coop-lan .btn{min-height:36px;padding:7px 10px;font-size:14px;min-width:0}
     .coop-lan .lite-actions{margin:6px 0;gap:6px}
     .coop-columns{display:flex;gap:12px;margin:6px 0;align-items:stretch}
@@ -34,6 +35,11 @@ if (typeof document !== 'undefined') {
     .coop-lan .coop-status{color:#246147;font-size:13px;line-height:1.4;margin:5px 0}
     .coop-lan .coop-error{color:#ae2743;font-size:13px;line-height:1.4;margin:5px 0}
     .coop-help{margin:8px 0;padding:10px;background:#fff8e7;border:1px solid #e9dcb4;border-radius:10px}
+    .coop-debug{margin:6px 0;padding:8px 10px;background:#fff8e7;border:1px solid #e9dcb4;border-radius:10px}
+    .coop-debug-row{display:flex;align-items:center;gap:8px}
+    .coop-debug-row>b{flex:1;min-width:0;font-size:13px}
+    .coop-debug-row>.btn{flex:none}
+    .coop-debug>.lite-note{font-size:12px;line-height:1.4;margin:4px 0 0}
     @media (max-width:550px){.coop-columns{flex-direction:column}}
     .tc-stick{opacity:.85;background:#163d3440;border:2px solid #ffffffc0;border-radius:999px}
     .tc-stick>i{background:#f0fff7;border:2px solid #327557;border-radius:999px}

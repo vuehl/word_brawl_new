@@ -5,6 +5,7 @@ import {GlyphHero} from './glyph-hero.js';
 import {HERO_ART} from './glyph-hero-art.js';
 import {LITE_SPECIES, isLiteSpecies, isLiteFamily} from './lite-rules.js';
 import {showMultiplayer} from './multiplayer-ui.js';
+import {adaptiveResolution} from './adaptive-resolution.js';
 import {mountLiteQA} from './lite-qa.js';
 import {stationeryArtEnabled} from './customize.js';
 import {scaleStationeryTerrain} from './stationery-terrain.js';
@@ -5132,7 +5133,7 @@ var oc = (e, t) =>
     };
     chromaAmt = 0;
     eclTmp = new ti();
-    quality = { pixelRatio: 1, bloom: !0, aa: !1, shadows: !1, pixelScale: 0 };
+    quality = { pixelRatio: 1, bloom: window.mobileGraphics?.bloom !== false, aa: !1, shadows: !1, pixelScale: 0 };
     outline;
     grade;
     tint = new lc();
@@ -5153,6 +5154,7 @@ var oc = (e, t) =>
           depth: !0,
         })),
         (this.renderer.outputColorSpace = pi),
+        (this.renderer.info.autoReset = false),
         (this.gpu = pc(this.renderer.getContext())),
         (this.softwareGpu = fc.test(this.gpu)),
         e.addEventListener(`webglcontextlost`, (e) => {
@@ -5267,7 +5269,7 @@ var oc = (e, t) =>
         (this.composer = new Gr(this.renderer, { frameBufferType: Er })),
         this.composer.addPass(new qr(this.scene, this.camera)),
         (this.bloom = new ni({
-          intensity: 0.8,
+          intensity: window.mobileGraphics?.bloom === false ? 0 : 0.8,
           luminanceThreshold: 0.92,
           luminanceSmoothing: 0.2,
           mipmapBlur: !0,
@@ -5281,6 +5283,7 @@ var oc = (e, t) =>
         (this.vignette.offset = 0.4),
         (this.vignette.darkness = 0.4),
         (this.outlinePass = new oi(this.camera, this.outline)),
+        (this.outlinePass.enabled = window.mobileGraphics?.outline !== false),
         this.composer.addPass(this.outlinePass),
         (this.grade = new uc()),
         (this.finalPass = new oi(this.camera, this.tint, this.grade, this.bloom, this.vignette)),
@@ -5392,7 +5395,7 @@ var oc = (e, t) =>
         (r = Math.round(r * 100) / 100));
       if (!n && window.mobileGraphics) {
         const profile = window.mobileGraphics;
-        const target = this.quality.saver || !this.hires ? 1 : this.quality.bloom ? profile.maxRatio : 2;
+        const target = this.quality.saver || !this.hires ? 1 : this.quality.resolution === 'high' || this.quality.bloom ? profile.maxRatio : profile.balancedRatio;
         const base = Math.min(window.devicePixelRatio || 1, target, Math.sqrt(profile.maxPixels / (e * t)));
         // A performance dip must not turn the world into a sub-CSS-pixel
         // image that is stretched underneath a crisp HUD.
@@ -5418,6 +5421,7 @@ var oc = (e, t) =>
     }
     eclPlaced = !1;
     render(e) {
+      this.renderer.info.reset();
       (this.dynDirty && ((this.dynDirty = !1), this.resize()),
         (this.needsDraw = !1),
         (this.shared.uTime.value += e),
@@ -74752,6 +74756,7 @@ var GT = 15,
     spec = null;
     constructor(e, t) {
       ((this.run = e), (this.room = t.room), (this.party = t.party));
+      this.loading=typeof this.room.waitForBattleStart==='function';
       let n = this.room.room.members;
       this.roster = n.map(member => ({...member}));
       ((this.size = n.length), (this.mySlot = this.room.mine?.slot ?? 0));
@@ -74796,6 +74801,7 @@ var GT = 15,
           snap: (e, t) => this.onSnap(e, t),
           link: (e, t) => this.onLink(e, t),
           closed: (reason) => {
+            if(this.loading)return; // The startup gate returns both clients to the lobby.
             for (let e of this.peers.values()) this.peerGone(e);
             if (this.room.url && this.run.state !== 'over') {
               this.run.ui.toast(reason || '联机已断开，请重新组队', null);
@@ -76395,7 +76401,8 @@ var GT = 15,
         this.mode === `tower` && ((this.tower = new OT(this)), (this.stage = this.tower.curveStage)),
         this.buildStage(!0),
         this.applyBoosts(),
-        this.openStage());
+        (this.stageReady=this.openStage()));
+      if(this.coop)this.stageReady.catch(()=>{}); // Observed by the cooperative startup flow.
     }
     async openStage() {
       let e = this.stageSprites();
@@ -76407,9 +76414,9 @@ var GT = 15,
         let t = this.state;
         ((this.state = `transition`),
           await this.ui.loading(e.length, () => this.sprites.readyCount(e)),
-          this.state === `transition` && (this.state = t === `transition` ? `play` : t));
+          !this.disposed && this.state === `transition` && (this.state = t === `transition` ? `play` : t));
       }
-      this.ui.stageIntro(this);
+      if(!this.disposed&&!this.coop?.loading)this.ui.stageIntro(this);
     }
     stageSprites() {
       let e = new Set([this.player.speciesId]);
@@ -78201,6 +78208,12 @@ var GT = 15,
     }
     update(e) {
       let t = this.input;
+      if(this.coop?.loading){
+        this.realDt=0;
+        this.orbitals.begin();this.orbitalsGlow.begin();
+        this.updateCamera(0);this.renderWorld(0);this.vfx.update(0);this.ui.hud(this);
+        return;
+      }
       ((this.realTime += e),
         (this.realDt = e),
         (this.fpsAcc += e),
@@ -78846,6 +78859,7 @@ var GT = 15,
         this.orbitalsGlow.end());
     }
     dispose() {
+      this.disposed=true;
       (this.glyphActors?.dispose(),
         this.glyphHero?.dispose(),
         this.coop?.dispose(),
@@ -78882,9 +78896,8 @@ var GT = 15,
         (e.parent?.remove(e), e.geometry.dispose(), e.material.dispose());
     }
   },
-  TE = 46,
+  TE = 36,
   EE = 0.1,
-  DE = 1.15,
   OE = 400,
   kE = 300,
   AE = 3;
@@ -79075,8 +79088,8 @@ var ME = class {
         let n = e.clientX - this.sx,
           r = e.clientY - this.sy,
           i = Math.hypot(n, r);
-        if (i > TE * this.k * DE && !this.fixed) {
-          let e = (i - TE * this.k * DE) / i;
+        if (i > TE * this.k && !this.fixed) {
+          let e = (i - TE * this.k) / i;
           ((this.sx += n * e),
             (this.sy += r * e),
             (n -= n * e),
@@ -101250,7 +101263,7 @@ function nI(e) {
               X(
                 `button`,
                 {
-                  class: `pill` + (String(Ho(t.fpsLimit)) === e ? ` on` : ``),
+                  class: `pill` + (String(Ho(t.fpsLimit ?? (window.mobileGraphics?.defaultFPS || undefined))) === e ? ` on` : ``),
                   onclick: () => {
                     (N.click(), (t.fpsLimit = e), r(), n());
                   },
@@ -103348,6 +103361,7 @@ var JI = class {
       (u(), (this.offTouch = po(u)), e.append(this.root));
     }
     destroy() {
+      this.stopLoading?.();
       (this.offTouch(), this.offPad(), this.touch.destroy(), this.coopHud?.destroy(), this.root.remove());
     }
     hs = 1;
@@ -103726,6 +103740,7 @@ var JI = class {
           u = () => {
             l ||
               ((l = !0),
+              (this.stopLoading=null),
               clearInterval(p),
               d.classList.add(`out`),
               setTimeout(() => d.remove(), 300),
@@ -103743,6 +103758,7 @@ var JI = class {
             r > 5 && o.hidden && ((o.hidden = !1), (s.hidden = !1), o.focus()),
             (n >= e || r > 45) && u());
         }, 120);
+        this.stopLoading=u;
       });
     }
     stageIntro(e) {
@@ -104069,7 +104085,15 @@ var JI = class {
           n.classList.toggle(`end`, r.t < 2));
       }
     }
+    hudAt = -Infinity;
+    hudState = '';
     hud(e) {
+      // Input stays live every frame; the labels/minimap only need to be built
+      // at the cadence at which the native UI can actually display them.
+      this.touch.update(e,this.promptText);
+      const now=performance.now(),interval=window.mobileGraphics?.hudInterval||0;
+      if(this.hudState===e.state&&now-this.hudAt<interval)return;
+      this.hudAt=now;this.hudState=e.state;
       ((this.runRef = e), e.coop && (this.coopHud ??= new AI(this.hudEl)).update(e));
       let t = e.player,
         n = this.els,
@@ -104100,8 +104124,7 @@ var JI = class {
               c(`Avance automático`),
               X(`kbd`, {}, ta(`autorun`)),
               X(`small`, {}, c(`{k} lo para`, { k: ta(`down`) })),
-            )),
-        this.touch.update(e, this.promptText));
+            )));
       let s = e.state === `play` && e.allies.state === `down`;
       (s !== (this.releaseEl.style.display === ``) && (this.releaseEl.style.display = s ? `` : `none`),
         s &&
@@ -104512,7 +104535,7 @@ var JI = class {
     drawMinimap(e) {
       if (this.hudEl.classList.contains(`no-minimap`)) return;
       let t = performance.now();
-      if (t - this.mmAt < 30) return;
+      if (t - this.mmAt < (window.mobileGraphics?.minimapInterval||30)) return;
       this.mmAt = t;
       let n = this.mm,
         r = e.player.pos,
@@ -109916,7 +109939,8 @@ var TL = () => d(Date.now()).some((e) => e.id === `halloween26`),
         this.r &&
           (this.r.setQuality({
             pixelScale: e.pixel ?? 0,
-            bloom: e.quality === `high`,
+            bloom: e.quality === `high` && window.mobileGraphics?.bloom !== false,
+            resolution: e.quality,
             hires: e.quality !== `low`,
             dyn: !0,
             saver: this.saver,
@@ -109954,15 +109978,40 @@ var TL = () => d(Date.now()).some((e) => e.id === `halloween26`),
     async startRun(e) {
       if (this.starting) return !1;
       (Oo(!0), (this.starting = !0));
+      const onHide=()=>{if(document.hidden)e.coop?.room.cancelStart?.('加载时游戏切到后台，请返回后重新组队');};
+      document.addEventListener('visibilitychange',onHide);
       try {
-        return await this.openRun(e);
+        await window.showRunLoading?.('正在加载森林资源');
+        const resources=window.prepareForest?.();
+        await (e.coop?.room.duringLoading?e.coop.room.duringLoading(resources):resources);
+        e.coop?.room.checkStart?.();
+        const ok = await this.openRun(e);
+        if (ok) {
+          const run=this.run;
+          if(run.coop?.loading)await e.coop.room.duringLoading(run.stageReady);
+          await window.waitForRunFrame?.(run);
+          if(run.coop?.loading){
+            await e.coop.room.waitForBattleStart(title=>window.updateRunLoading?.(title));
+            if(!e.coop.room.open||this.run!==run)throw Error('开局已取消，请重新组队');
+            run.coop.loading=false;run.coop.clock0=dE();
+            this.input.releaseAll?.(false);
+            this.hud.stageIntro(run);
+            window.finishCoopLoading?.();
+          }
+        }
+        return ok;
       } catch (error) {
+        e.coop?.room.cancelStart?.(error.message||String(error));
+        window.recordRunError?.(error);
         console.error('[字灵] 森林初始化失败', error);
+        if (e.coop) throw error; // The lobby owns connection cleanup and retry UI.
         if (window.onRunStartError) window.onRunStartError(error);
         else { this.toMenu(); this.notice('森林未能打开：' + (error.message || error)); }
         return false;
       } finally {
+        document.removeEventListener('visibilitychange',onHide);
         this.starting = !1;
+        window.hideRunLoading?.();
       }
     }
     async openRun(e) {
@@ -109991,6 +110040,7 @@ var TL = () => d(Date.now()).some((e) => e.id === `halloween26`),
       } catch (e) {
         return (this.notice(e.message), N.deny(), !1);
       }
+      await window.showRunLoading?.('正在生成森林场景');
       return (
         (e = { ...e, seed: t.seed, boosts: t.boosts ?? [] }),
         fN(),
@@ -110209,37 +110259,22 @@ var TL = () => d(Date.now()).some((e) => e.id === `halloween26`),
     frameGap() {
       let e = this.run?.state;
       if (this.saver) return e === `paused` || e === `modal` ? 50 : 33.3;
+      if (!this.run && window.mobileGraphics?.menuFPS) return 1000/window.mobileGraphics.menuFPS;
       let t = this.fpsCap();
       return t ? 1e3 / t : 0;
     }
     fpsCap() {
-      return this.saver ? 30 : Ho(this.meta?.profile?.settings.fpsLimit);
+      return this.saver ? 30 : Ho(this.meta?.profile?.settings.fpsLimit ?? (window.mobileGraphics?.defaultFPS || undefined));
     }
     dyn = { t: 0, frames: 0, js: 0, good: 0, wait: 8, lastUp: -1e9 };
     dynAt = 0;
     adaptRes(e, t, n) {
-      let r = this.dyn,
-        i = this.r;
-      if (
-        ((this.dynAt = n),
-        !i.quality.dyn || this.saver || this.run?.state !== `play` || document.hidden || !(t > 0 && t < 0.25))
-      ) {
-        r.t = r.frames = r.js = 0;
-        return;
-      }
-      if (((r.t += t), r.frames++, (r.js += e), r.t < 2)) return;
-      let a = r.frames / r.t,
-        o = r.js / r.frames / ((r.t / r.frames) * 1e3);
-      r.t = r.frames = r.js = 0;
-      let s = window.__dynFps,
-        c = s ?? a;
-      c < 45 && (o < 0.7 || s !== void 0) && i.dynRes > dc.DYN_MIN
-        ? (n - r.lastUp < 25e3 && (r.wait = Math.min(60, r.wait * 2)),
-          (r.good = 0),
-          i.setDynRes(i.dynRes - 0.1))
-        : c >= 55 && i.dynRes < 1
-          ? ++r.good * 2 >= r.wait && ((r.good = 0), (r.lastUp = n), i.setDynRes(i.dynRes + 0.1))
-          : (r.good = 0);
+      this.dynAt=n;
+      const i=this.r,profile=window.mobileGraphics;
+      const target=!this.run&&profile?.menuFPS?profile.menuFPS:this.fpsCap()||60;
+      i.setDynRes(adaptiveResolution(this.dyn,{seconds:t,workMs:e,now:n,scale:i.dynRes,minScale:dc.DYN_MIN,
+        targetFPS:Math.min(60,target),allowCpuBound:!!profile,
+        active:i.quality.dyn&&!this.saver&&!this.starting&&!document.hidden&&(this.run?.state==='play'||!this.run&&!!profile)}));
     }
     halted = !1;
     nextDraw = 0;
@@ -110259,8 +110294,11 @@ var TL = () => d(Date.now()).some((e) => e.id === `halloween26`),
           let e = this.perf;
           ((e.sim += (r - t - e.sim) * 0.05), (e.draw += (performance.now() - r - e.draw) * 0.05));
         }
+        window.recordFramePerformance?.(r-t,performance.now()-r,this.r,this.run?.state);
         ((this.failing = 0), this.adaptRes(performance.now() - t, (e - this.dynAt) / 1e3, e));
       } catch (e) {
+        window.onRunRenderError?.(e);
+        if(this.starting&&this.run?.coop?.loading)this.run.coop.room.cancelStart?.(e.message||String(e));
         if (
           (this.failing++ % 60 == 0 && (console.error(`[pokebonk] Error en el fotograma`, e), oc(`frame`, e)),
           this.failing === 60 && this.run && this.run.state !== `over`)

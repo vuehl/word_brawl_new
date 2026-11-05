@@ -3,7 +3,7 @@ import {multiplayerConfig} from './multiplayer-config.js';
 
 export function showMultiplayer(app, {element: el, screen, home, partner}) {
   let room = app.coopRoom?.open ? app.coopRoom : null;
-  let busy = false, error = '', message = '', starting = false, active = true, help = false;
+  let busy = false, error = '', message = '', connectionPhase = '', starting = false, active = true, help = false;
   let pick = app.meta.profile.lastSpecies || 4;
   let name = localStorage.getItem('ziling.coop.name') || app.meta.account.name || '伙伴';
   let code = window.getCoopInvitation?.() || '';
@@ -24,15 +24,20 @@ export function showMultiplayer(app, {element: el, screen, home, partner}) {
       closed: reason => { app.coopRoom = null; room = null; error = reason; if (active && !starting) render(); },
       start: async state => {
         if (starting || !active) return;
-        starting = true; const session = room; render();
+        starting = true; const session = room;
         try {
+          render();
           const ok = await app.startRun({species: session.mine.species, biome: 'forest', tier: state.tier,
             coop: {room: session, party: state.party, seed: state.seed}});
           if (!session.open) { app.toMenu(); app.notice('连接已断开，请重新组队'); active = false; return; }
           if (!ok) throw Error('森林未能打开，请返回首页后重新组队');
           active = false;
         } catch (err) {
-          await session.leave(); app.coopRoom = null; room = null; starting = false; error = err.message; render();
+          try { await session.leave(); } catch (closeError) { console.warn('[字灵] 退出未能开局的房间', closeError); }
+          app.coopRoom = null; room = null; starting = false;
+          error = '本机未能进入森林，请重新组队。' + (err?.message || String(err));
+          if (app.run || app.hud || !app.menuScene) app.toMenu();
+          render();
         }
       },
     };
@@ -43,11 +48,13 @@ export function showMultiplayer(app, {element: el, screen, home, partner}) {
     localStorage.setItem('ziling.coop.name', name);
     app.coopConnecting = true;
     try {
+      connectionPhase = '正在加载联机资源…'; render();
       await window.prepareForest?.();
+      connectionPhase = join ? '正在加入房间…' : '正在创建房间…'; render();
       room = await RelayRoom.connect({url: multiplayerConfig.url, code: join ? code.trim() : undefined, name, species: pick,
         factory: window.createCoopSocket || browserSocket});
       app.coopRoom = room; window.clearCoopInvitation?.(); bind();
-    } finally { app.coopConnecting = false; }
+    } finally { app.coopConnecting = false; connectionPhase = ''; }
   }
   async function leave() {
     active = false; await room?.leave(); app.coopRoom = null;
@@ -69,16 +76,38 @@ export function showMultiplayer(app, {element: el, screen, home, partner}) {
     code = await window.pasteCoopCode();
     message = '已填入房间号，点击「加入房间」。';
   }
+  async function enableDebug() {
+    const info = await window.enableCoopDebug();
+    message = info.enabled === true
+      ? '手机调试已开启。请完全退出小游戏，再扫描这份预览码进入并创建或加入房间。'
+      : '开启调试请求已提交，尚未读到已开启状态。请退出小游戏后重新扫码，再确认手机调试状态。';
+  }
   function render() {
     if (!active) return;
+    const runtime = window.getRuntimeInfo?.();
     pick = room?.mine?.species || pick;
     const choices = el('div', {class:'lite-actions coop-picks'}, ...[1,4,7].map(id => button((pick === id ? '✓ ' : '') + partner(id), async () => {
       if (room) await room.setPick(id); pick = id;
     }, pick === id ? 'red' : 'ghost')));
     const nodes = [el('div', {class: 'lite-map-head'}, el('b', {}, room ? '队伍房间 · ' + room.room.members.length + '/4 人' : '多人联机 · 2–4 人'),
-      row(button(help ? '收起说明' : '怎么玩', () => { help = !help; }, 'ghost'), button(room ? '离开房间' : '返回首页', leave, 'ghost')))];
+      row(button(help ? '收起说明' : '怎么玩', () => { help = !help; }, 'ghost'),
+        ...(runtime ? [button('诊断信息',()=>window.showRuntimeInfo(), 'ghost')] : []),
+        button(room ? '离开房间' : '返回首页', leave, 'ghost')))];
     if (starting) nodes.push(el('p', {class: 'lite-lead'}, '队伍已就绪，正在进入森林…'));
     else if (!room) {
+      const debug = window.getCoopDebugInfo?.();
+      if (debug) {
+        const status = debug.enabled === true ? '已开启' : debug.enabled === false ? '未开启' : '状态未能读取';
+        nodes.push(el('div', {class: 'coop-debug'},
+          el('div', {class: 'coop-debug-row'}, el('b', {}, '内网测试 · 手机调试：' + status),
+            ...(debug.canEnable && debug.enabled !== true ? [button('开启手机调试', enableDebug)] : [button('刷新状态', () => {}, 'ghost')])),
+          note(debug.version === 'release' ? '同网段可直接尝试连接；跨网段或公网访问需配置 WSS 合法域名。'
+            : debug.canEnable ? '同网段可直接尝试开房；遇到域名校验错误时，可开启调试后重新扫码。'
+            : '遇到域名校验错误时，可从手机右上角「···」菜单开启调试后重试。')));
+      }
+      if (message) nodes.push(el('p', {class: 'coop-status', role: 'status'}, message));
+      if (error) nodes.push(el('p', {class: 'coop-error', role: 'alert'}, error));
+      if (busy) nodes.push(el('p', {class: 'coop-status', role: 'status'}, connectionPhase || '正在处理，请稍候…'));
       nodes.push(note('先连同一内网 Wi-Fi，再创建或加入房间。手机需要能访问内网服务器。'),
         el('div', {class: 'coop-columns'},
           el('section', {class: 'coop-section'}, el('b', {}, '我来组队'),
@@ -90,7 +119,7 @@ export function showMultiplayer(app, {element: el, screen, home, partner}) {
               oninput: event => { code = event.target.value.replace(/\D/g, '').slice(0,6); event.target.value = code; }}),
             row(button('粘贴房间号', paste, 'ghost'), button('加入房间', () => connect(true))),
             note(code ? '邀请已填好房间号，核对后点击加入。' : '先扫同一个游戏预览码，再输入房主的六位房间号。'),
-            note('进房 → 选伙伴 → 每人准备 → 房主开始'))));
+            note('进房 → 每人准备 → 房主开始 → 全员加载好后一起倒计时'))));
     } else {
       const waiting = room.room.members.filter(member => !member.ready);
       const status = room.room.members.length < 2 ? '还差 1 位伙伴，邀请朋友加入吧。' : waiting.length
@@ -117,13 +146,15 @@ export function showMultiplayer(app, {element: el, screen, home, partner}) {
       note('1. 每个人用微信打开同一份游戏预览版，连接能访问服务器的 Wi-Fi。'),
       note('2. 一个人创建房间，点「邀请好友」或「复制房间号」；朋友打开邀请或粘贴房间号加入。'),
       note('3. 每个人选伙伴并点「准备」，至少 2 人后，由房主点「开始冒险」。改伙伴或难度后要重新准备。'),
+      note('开局会等每个人加载好画面，再统一倒计时进入战斗；等待时不会刷怪或计时。加载中请留在游戏内。'),
       el('b', {}, '战斗操作'),
       note('左侧按住拖动摇杆移动；右侧空白处拖动转动镜头。默认自动攻击，右侧按钮用于跳跃、冲刺和终极技。'),
       note('协作躲避怪物、拆字和收集经验，一起挑战森林首领。离开或断线后需重新组队；进度保存在各自手机。')));
-    if (busy && !starting) nodes.push(note('正在处理，请稍候…'));
-    if (message) nodes.push(el('p', {class: 'coop-status', role: 'status'}, message));
-    if (error) nodes.push(el('p', {class: 'coop-error', role: 'alert'}, error));
+    if (room && busy && !starting) nodes.push(note('正在处理，请稍候…'));
+    if (room && message) nodes.push(el('p', {class: 'coop-status', role: 'status'}, message));
+    if (room && error) nodes.push(el('p', {class: 'coop-error', role: 'alert'}, error));
     if (!room) nodes.push(note('左摇杆移动 · 右侧拖动镜头 · 自动攻击 · 每人准备后开局'));
+    if (runtime) nodes.push(note('联机修复版 '+runtime.build));
     screen(app, 'lite-home coop-lan', el('section', {class: 'lite-panel coop-panel'}, ...nodes)).setAttribute('data-live-layout','');
   }
   if (room) bind(); render();

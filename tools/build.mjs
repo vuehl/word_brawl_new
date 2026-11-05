@@ -92,7 +92,7 @@ const sources={
       code=replace(code,'await new Promise((e) => setTimeout(e, Math.min(5e3, 1e3 + t * 500))));',
         'await new Promise((e) => setTimeout(e, 500)));\n          if (t >= 2) throw Error("WebGL 2 初始化失败：" + (e.message || e));');
       code=replace(code,'(ac(), wL(), await new AL().boot());','export async function launch(){ac();wL();const app=new AL();window.onApp?.(app);await app.boot();return app;}');
-      code=replace(code,'if ((this.r.render(n), this.run?.state === \x60play\x60))','if ((this.r.render(n), window.drawUI(this.r.renderer), this.run?.state === \x60play\x60))');
+      code=replace(code,'if ((this.r.render(n), this.run?.state === \x60play\x60))','if ((this.r.render(n), window.drawUI(this.r.renderer,this.run), window.didRenderRunFrame?.(this.run), this.run?.state === \x60play\x60))');
       code=replace(code,'(this.failing++ % 60 == 0','(window.onBootRenderError?.(e), this.failing++ % 60 == 0');
       return {contents:lowerUnicodeRegexes(code),resolveDir:path.join(src,'src')};
     });
@@ -108,20 +108,24 @@ fs.rmSync(path.join(out,'sprite-png.js'),{force:true});
 const result=await esbuild.build({...common,define:{innerWidth:'window.innerWidth',innerHeight:'window.innerHeight',devicePixelRatio:'window.devicePixelRatio'},write:false,stdin:{contents:
   'import "../public/turnstile-stub.js";import {l as language} from "./i18n.js";'+
   'export async function start(){language(window.locale,window.readLocale(window.locale));return require("./game.js").launch();}',resolveDir:path.join(src,'src')}});
+const timerBindings='setTimeout clearTimeout setInterval clearInterval requestAnimationFrame cancelAnimationFrame'.split(' ');
 const bindings=('globalThis window self document navigator location history localStorage sessionStorage innerWidth innerHeight devicePixelRatio screen '+
+  'setTimeout clearTimeout setInterval clearInterval '+
   'getComputedStyle matchMedia performance addEventListener removeEventListener dispatchEvent requestAnimationFrame cancelAnimationFrame '+
   'Image HTMLImageElement HTMLCanvasElement HTMLElement HTMLInputElement HTMLButtonElement HTMLTextAreaElement HTMLSelectElement HTMLAnchorElement HTMLVideoElement Node Element '+
   'Event CustomEvent EventTarget PointerEvent MouseEvent KeyboardEvent ProgressEvent MutationObserver DOMParser OffscreenCanvas ImageBitmap createImageBitmap '+
   'fetch Headers Request Response Blob URL URLSearchParams TextEncoder TextDecoder AbortController AbortSignal AudioContext structuredClone crypto Path2D alert').split(/\s+/);
 // A WeChat single-file subpackage executes this file as its entry. It needs
 // no sibling imports. Publish before or after the main entry subscribes.
-fs.writeFileSync(path.join(out,'play.js'),'(function(){\nconst root=typeof globalThis==="object"?globalThis:GameGlobal;\nfunction setup(host){const globalThis=root,module={exports:{}};\n'+
+fs.writeFileSync(path.join(out,'play.js'),'(function(){\nconst root=typeof globalThis==="object"?globalThis:GameGlobal;\nfunction setup(host){const globalThis=root,module={exports:{}};const {'+timerBindings.join(',')+'}=host.timers;\n'+
   hostBundle.outputFiles[0].text+'\nreturn module.exports.setup(host);}\n'+
   'async function run(environment){const {'+bindings.join(',')+'}=environment;const module={exports:{}};\n'+
   result.outputFiles[0].text+'\nreturn module.exports.start();}\n'+
   'const box=GameGlobal.zilingPlayEntry||(GameGlobal.zilingPlayEntry={});box.api={setup,run};if(box.receive){box.receive(box.api);delete box.receive;}\n})();\n');
 for(const file of ['host.js','original.js'])fs.rmSync(path.join(out,file),{force:true});
 fs.copyFileSync(path.join(platform,'files.js'),path.join(out,'files.js'));
+fs.copyFileSync(path.join(platform,'timers.js'),path.join(out,'timers.js'));
+fs.copyFileSync(path.join(platform,'runtime-info.js'),path.join(out,'runtime-info.js'));
 fs.copyFileSync(path.join(platform,'boot-screen.js'),path.join(out,'boot-screen.js'));
 fs.copyFileSync(path.join(platform,'resource-codec.js'),path.join(out,'resource-codec.js'));
 addBootAssets(out,bootAssets(root));

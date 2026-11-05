@@ -1,5 +1,7 @@
 'use strict';
 
+const {setTimeout,clearTimeout,requestAnimationFrame} = require('./timers');
+
 // Each octal digit is one three-pixel row, top to bottom. No font or texture is needed.
 const digitMasks = [0o75557,0o26227,0o71747,0o71717,0o55711,0o74717,0o74757,0o71222,0o75757,0o75717];
 const percentMask = 0o51245;
